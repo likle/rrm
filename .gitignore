@@ -1,0 +1,6 @@
+src/constants.h
+.idea
+cmake-build-debug
+cmake-build-release
+build
+build.win

@@ -1,0 +1,297 @@
+#include "option.h"
+#include <assert.h>
+#include <memory.h>
+#include <stdio.h>
+
+void tsh_option_print(const tsh_option *options, size_t option_count)
+{
+  size_t option_index;
+  const tsh_option *option;
+  const char *access_letter;
+
+  for (option_index = 0; option_index < option_count; ++option_index) {
+    option = &options[option_index];
+    fputs("    ", stdout);
+
+    access_letter = option->access_letters;
+    if (access_letter != NULL) {
+      while (*access_letter) {
+        printf("-%c", *access_letter);
+
+        ++access_letter;
+      }
+    }
+  }
+}
+
+void tsh_option_prepare(tsh_option_context *context, const tsh_option *options,
+  size_t option_count, int argc, char **argv)
+{
+  // This just initialized the values to the beginning of all the arguments.
+  context->options = options;
+  context->option_count = option_count;
+  context->argc = argc;
+  context->argv = argv;
+  context->index = 1;
+  context->inner_index = 0;
+}
+
+static const tsh_option *tsh_option_find_by_name(tsh_option_context *context,
+  char *name, size_t name_size)
+{
+  const tsh_option *option;
+  size_t i;
+
+  // We loop over all the available options and stop as soon as we have found
+  // one. We don't use any hash map table, since there won't be that many
+  // arguments anyway.
+  for (i = 0; i < context->option_count; ++i) {
+    option = &context->options[i];
+
+    // The option might not have an item name, we can just skip those.
+    if (option->access_name == NULL) {
+      continue;
+    }
+
+    // Try to compare the name of the access name. We can use the name_size or
+    // this comparison, since we are guaranteed to have null-terminated access
+    // names.
+    if (strncmp(option->access_name, name, name_size) == 0) {
+      return option;
+    }
+  }
+
+  return NULL;
+}
+
+static const tsh_option *tsh_option_find_by_letter(tsh_option_context *context,
+  char letter)
+{
+  const tsh_option *option;
+  size_t i;
+
+  // We loop over all the available options and stop as soon as we have found
+  // one. We don't use any look up table, since there won't be that many
+  // arguments anyway.
+  for (i = 0; i < context->option_count; ++i) {
+    option = &context->options[i];
+    if (strchr(option->access_letters, letter) != NULL) {
+      return option;
+    }
+  }
+
+  return NULL;
+}
+
+static void tsh_option_parse_value(tsh_option_context *context,
+  const tsh_option *option, char **c)
+{
+  // And now let's check whether this option is supposed to have a value, which
+  // is the case if there is a value name set. The value can be either submitted
+  // with a '=' sign or a space, which means we would have to jump over to the
+  // next argv index. This is somewhat ugly, but we do it to behave the same as
+  // the other option parsers.
+  if (option->value_name != NULL) {
+    if (**c == '=') {
+      context->value = ++(*c);
+    } else {
+      // If the next index is larger or equal to the argument count, then the
+      // parameter for this option is missing. The user will know about this,
+      // since the value pointer of the context will be NULL because we don't
+      // set it here in that case.
+      if (context->argc > context->index + 1) {
+        // We consider this argv to be the value, no matter what the contents
+        // are.
+        ++context->index;
+        *c = context->argv[context->index];
+        context->value = *c;
+      }
+    }
+  }
+}
+
+static void tsh_option_parse_access_name(tsh_option_context *context, char **c)
+{
+  const tsh_option *option;
+  char *n;
+
+  // No matter whether this is a valid option or not, we will not parse it again
+  // so we will move the index to the next.
+  ++context->index;
+
+  // Now we need to extract the access name, which is any symbol up to a '=' or
+  // a '\0'.
+  n = *c;
+  while (**c && **c != '=') {
+    ++*c;
+  }
+
+  // Now this will obviously always be true, but we are paranoid. Sometimes. It
+  // doesn't hurt to check.
+  assert(*c >= n);
+
+  // Figure out which option this name belongs to. This might return NULL if the
+  // name is not registered, which means the user supplied an unknown option. In
+  // that case we return true to indicate that we finished with this option. We
+  // have to skip the value parsing since we don't know whether the user thinks
+  // this option has one or not. Since we don't set any identifier specifically,
+  // it will remain '?' within the context.
+  option = tsh_option_find_by_name(context, n, (size_t)(*c - n));
+  if (option == NULL) {
+    return;
+  }
+
+  // We found an option and now we can specify the identifier within the
+  // context.
+  context->identifier = option->identifier;
+
+  // And now we try to parse the value. This function will also check whether
+  // this option is actually supposed to have a value.
+  tsh_option_parse_value(context, option, c);
+}
+
+static void tsh_option_parse_access_letter(tsh_option_context *context,
+  char **c)
+{
+  const tsh_option *option;
+  char *n = *c;
+
+  // Figure out which option this letter belongs to. This might return NULL if
+  // the letter is not registered, which means the user supplied an unknown
+  // option. In that case we return true to indicate that we finished with this
+  // option. We have to skip the value parsing since we don't know whether the
+  // user thinks this option has one or not. Since we don't set any identifier
+  // specifically, it will remain '?' within the context.
+  option = tsh_option_find_by_letter(context, n[context->inner_index]);
+  if (option == NULL) {
+    return;
+  }
+
+  // We found an option and now we can specify the identifier within the
+  // context.
+  context->identifier = option->identifier;
+
+  // And now we try to parse the value. This function will also check whether
+  // this option is actually supposed to have a value.
+  tsh_option_parse_value(context, option, c);
+
+  // Check whether we reached the end of this option argument.
+  if (n[++context->inner_index] == '\0') {
+    ++context->index;
+    context->inner_index = 0;
+  }
+}
+
+static void tsh_option_swap(tsh_option_context *context, int index_a,
+  int index_b)
+{
+  char *tmp;
+
+  // If this is the same index, we won't have to do anything. Actually we don't
+  // need this check, but it is still here for documentation - since the swap
+  // function must support this.
+  if (index_a == index_b) {
+    return;
+  }
+
+  // And now we swap the indexes with the help of the temporary variable.
+  tmp = context->argv[index_a];
+  context->argv[index_a] = context->argv[index_b];
+  context->argv[index_b] = tmp;
+}
+
+static bool tsh_option_is_argument_string(const char *c)
+{
+  return *c == '-' && *(c + 1) != '\0';
+}
+
+static bool tsh_option_prepare_next(tsh_option_context *context)
+{
+  int next_index, next_option_index;
+  char *c;
+
+  // Prepare to search the next option at the next index.
+  next_index = context->index;
+  next_option_index = next_index;
+
+  // Grab a pointer to the string and verify that it is not the end. If it is
+  // the end, we have to return false to indicate that we finished.
+  c = context->argv[next_option_index];
+  if (c == NULL) {
+    return false;
+  }
+
+  // Check whether it is a '-'. We need to find the next option - and an option
+  // always starts with a '-'. If there is a string "-\0", we don't consider it
+  // as an option neither.
+  while (!tsh_option_is_argument_string(c)) {
+    // Find next option and swap.
+    c = context->argv[++next_option_index];
+    if (c == NULL) {
+      // We reached the end and did not find any argument anymore. Let's tell
+      // our caller that we couldn't prepare the next item.
+      return false;
+    }
+  }
+
+  // We found the next item, let's swap them around and set the context index
+  // to the new index.
+  tsh_option_swap(context, next_index, next_option_index);
+  context->index = next_index;
+
+  // Indicate that we found an option which can be processed. The option is
+  // now in the index of the context.
+  return true;
+}
+
+bool tsh_option_fetch(tsh_option_context *context)
+{
+  char *c;
+
+  // Reset our identifier to a question mark, which indicates an "unknown"
+  // option. The value is set to NULL, to make sure we are not carrying the
+  // parameter from the previous option to this one.
+  context->identifier = '?';
+  context->value = NULL;
+
+  // Check whether there are any options left to parse
+  if (!tsh_option_prepare_next(context)) {
+    return false;
+  }
+
+  // Grab a pointer to the beginning of the option.At this point, the next
+  // character must be a '-', since if it was not the prepare function would
+  // have returned false. We will skip that symbol and proceed.
+  c = context->argv[context->index];
+  assert(*c == '-');
+  ++c;
+
+  // Check whether this is a long option, starting with a double "--".
+  if (*c == '-') {
+    ++c;
+
+    // This might be a double "--" which indicates the end of options. If this
+    // is the case, we will not move to the next index. That ensures that
+    // another call to the fetch function will not skip the "--".
+    if (*c == '\0') {
+      return false;
+    }
+
+    // We parse now the access name. All information about it will be written
+    // to the context.
+    tsh_option_parse_access_name(context, &c);
+
+    // The long argument has been parsed. Indicate that to the caller, so he
+    // can process the option.
+    return true;
+  }
+
+  tsh_option_parse_access_letter(context, &c);
+  return true;
+}
+
+char tsh_option_get(tsh_option_context *context)
+{
+  // We just return the identifier here.
+  return context->identifier;
+}
