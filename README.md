@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/likle/tsh.svg?branch=master)](https://travis-ci.org/likle/tsh) 
+[![codecov](https://codecov.io/gh/likle/tsh/branch/master/graph/badge.svg)](https://codecov.io/gh/likle/tsh)
+
 # tsh - trash utility
 The ``tsh`` utility is a simple tool which can be used as a replacement for rm.
 While rm permanently deletes all files, ``tsh`` will just move them it to a trash.
