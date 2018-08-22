@@ -3,50 +3,108 @@
 #include <stdlib.h>
 #include <utils.h>
 
-#define UNITS(XX) XX(option)
+#define UNIT_TESTS(XX)                                                         \
+  XX(option, simple)                                                           \
+  XX(option, combined)                                                         \
+  XX(option, args)
 
-struct tsh_unit
+struct tsh_test
 {
-  const char *name;
-  int (*fn)(int argc, char *argv[]);
+  const char *unit_name;
+  const char *test_name;
+  const char *full_name;
+  int (*fn)(void);
 };
 
-#define XX(u) extern int u##_test(int argc, char *argv[]);
-UNITS(XX)
+#define XX(u, t) extern int u##_##t(void);
+UNIT_TESTS(XX)
 #undef XX
 
-static struct tsh_unit units[] = {
-#define XX(u) {.name = #u, .fn = u##_test},
-  UNITS(XX)
+static struct tsh_test tests[] = {
+#define XX(u, t)                                                               \
+  {.unit_name = #u, .test_name = #t, .full_name = #u "/" #t, .fn = u##_##t},
+  UNIT_TESTS(XX)
 #undef XX
 };
+
+static int call_test(struct tsh_test *test)
+{
+  size_t i;
+
+  printf(" Running '%s' ", test->full_name);
+  for (i = strlen(test->full_name); i < 30; ++i) {
+    fputs(".", stdout);
+  }
+
+  if (test->fn() == EXIT_FAILURE) {
+    fputs(" FAILURE\n", stdout);
+    return EXIT_FAILURE;
+  }
+
+  fputs(" SUCCESS\n", stdout);
+  return EXIT_SUCCESS;
+}
 
 int main(int argc, char *argv[])
 {
-  size_t i;
-  const char *requested_unit_name;
-  struct tsh_unit *unit;
+  size_t i, count, failed;
+  const char *requested_unit_name, *requested_test_name;
+  struct tsh_test *test;
+  double rate;
 
+  count = 0;
+  failed = 0;
   if (argc < 2) {
-    for (i = 0; i <= TSH_ARRAY_SIZE(units); ++i) {
-      unit = &units[i];
-      if (unit->fn(argc, argv) == EXIT_FAILURE) {
-        return EXIT_FAILURE;
+    fputs("No unit specified. Running all tests.\n\n", stdout);
+    for (i = 0; i < TSH_ARRAY_SIZE(tests); ++i) {
+      test = &tests[i];
+      ++count;
+      if (call_test(test) == EXIT_FAILURE) {
+        ++failed;
       }
     }
-
-    return EXIT_SUCCESS;
-  }
-
-  requested_unit_name = argv[1];
-  for (i = 0; i <= TSH_ARRAY_SIZE(units); ++i) {
-    unit = &units[i];
-    if (strcmp(unit->name, requested_unit_name) == 0) {
-      return unit->fn(argc, argv);
+  } else if (argc < 3) {
+    requested_unit_name = argv[1];
+    printf("Running all unit tests of '%s'.\n\n", requested_unit_name);
+    for (i = 0; i <= TSH_ARRAY_SIZE(tests); ++i) {
+      test = &tests[i];
+      if (strcmp(test->unit_name, requested_unit_name) == 0) {
+        ++count;
+        if (call_test(test) == EXIT_FAILURE) {
+          ++failed;
+        }
+      }
+    }
+  } else {
+    requested_unit_name = argv[1];
+    requested_test_name = argv[2];
+    printf("Running a single test '%s/%s'.\n\n", requested_unit_name,
+      requested_test_name);
+    for (i = 0; i <= TSH_ARRAY_SIZE(tests); ++i) {
+      test = &tests[i];
+      if (strcmp(test->unit_name, requested_unit_name) == 0 &&
+          strcmp(test->test_name, requested_test_name) == 0) {
+        ++count;
+        if (call_test(test) == EXIT_FAILURE) {
+          ++failed;
+        }
+      }
     }
   }
 
-  fprintf(stderr, "Unknown unit '%s'.", requested_unit_name);
+  if (count == 1) {
+    fputs("\nThe test has been executed.\n", stdout);
+  } else if (count > 0) {
+    rate = (double)failed / (double)count * 100;
+    printf("\n%zu/%zu %.2f%% of those tests failed.\n", failed, count, rate);
+  } else {
+    printf("No tests found.\n");
+    return EXIT_FAILURE;
+  }
 
-  return EXIT_FAILURE;
+  if (failed > 0) {
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
 }
