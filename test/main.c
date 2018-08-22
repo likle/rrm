@@ -47,7 +47,7 @@ static int call_test(struct tsh_test *test)
 
 int main(int argc, char *argv[])
 {
-  size_t i, count, failed;
+  size_t i, count, failed, succeeded;
   const char *requested_unit_name, *requested_test_name;
   struct tsh_test *test;
   double rate;
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
   } else if (argc < 3) {
     requested_unit_name = argv[1];
     printf("Running all unit tests of '%s'.\n\n", requested_unit_name);
-    for (i = 0; i <= TSH_ARRAY_SIZE(tests); ++i) {
+    for (i = 0; i < TSH_ARRAY_SIZE(tests); ++i) {
       test = &tests[i];
       if (strcmp(test->unit_name, requested_unit_name) == 0) {
         ++count;
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     requested_test_name = argv[2];
     printf("Running a single test '%s/%s'.\n\n", requested_unit_name,
       requested_test_name);
-    for (i = 0; i <= TSH_ARRAY_SIZE(tests); ++i) {
+    for (i = 0; i < TSH_ARRAY_SIZE(tests); ++i) {
       test = &tests[i];
       if (strcmp(test->unit_name, requested_unit_name) == 0 &&
           strcmp(test->test_name, requested_test_name) == 0) {
@@ -95,10 +95,12 @@ int main(int argc, char *argv[])
   if (count == 1) {
     fputs("\nThe test has been executed.\n", stdout);
   } else if (count > 0) {
-    rate = (double)failed / (double)count * 100;
-    printf("\n%zu/%zu %.2f%% of those tests failed.\n", failed, count, rate);
+    succeeded = count - failed;
+    rate = (double)succeeded / (double)count * 100;
+    printf("\n%zu/%zu (%.2f%%) of those tests succeeded.\n", succeeded, count,
+      rate);
   } else {
-    printf("No tests found.\n");
+    printf("\nNo tests found.\n");
     return EXIT_FAILURE;
   }
 
