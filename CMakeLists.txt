@@ -9,6 +9,7 @@ project(tsh
 # include utilities
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(EnableWarnings)
+include(CTest)
 
 # configure requirements
 set(CMAKE_C_STANDARD 11)
@@ -40,8 +41,8 @@ add_executable(${TRASH_TARGET}
 
 # add tests
 enable_testing()
-create_test_sourcelist(TEST_SOURCE_LIST test.c "option_test.c")
-add_executable(${TEST_TARGET} ${TEST_SOURCE_LIST} test/option_test.cpp)
+add_executable(${TEST_TARGET} "${TEST_DIRECTORY}/main.c" "${TEST_DIRECTORY}/option_test.c")
+target_include_directories(${TEST_TARGET} PRIVATE "${SOURCE_DIRECTORY}")
 
 # enable warnings
 enable_warnings(${TRASH_TARGET})
