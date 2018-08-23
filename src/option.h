@@ -11,6 +11,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdio.h>
 
 /**
  * An option is used to describe a flag/argument option submitted when the
@@ -50,8 +51,10 @@ typedef struct tsh_option_context
  *
  * @param options The options which will be printed.
  * @param option_count The option count which will be printed.
+ * @param destination The destination where the output will be printed.
  */
-void tsh_option_print(const tsh_option *options, size_t option_count);
+void tsh_option_print(const tsh_option *options, size_t option_count,
+  FILE *destination);
 
 /**
  * @brief Prepare argument options for parsing.

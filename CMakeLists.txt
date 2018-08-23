@@ -42,7 +42,9 @@ add_executable(${TRASH_TARGET}
 
 # add tests
 enable_testing()
+create_test(DEFAULT option print)
 create_test(DEFAULT option simple)
+create_test(DEFAULT option simple_long)
 create_test(DEFAULT option alias)
 create_test(DEFAULT option unknown_short)
 create_test(DEFAULT option unknown_long)

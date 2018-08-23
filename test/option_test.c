@@ -550,6 +550,36 @@ err_setup:
   return EXIT_FAILURE;
 }
 
+int option_simple_long(void)
+{
+  int status;
+
+  status = make_args("test --long");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (result.simple_flag || result.another || result.multiaccess_flags ||
+      !result.long_parameter || result.value_parameter || result.unknown ||
+      result.def || result.value != NULL) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
 int option_simple(void)
 {
   int status;
@@ -577,5 +607,53 @@ int option_simple(void)
 err_wrong:
   destroy_args();
 err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_print(void)
+{
+  int status;
+  char buf[255];
+  char *result;
+  const char *expected;
+  const char *test_file_name;
+  FILE *test_file;
+
+  test_file_name = "option_print.out";
+  expected = "  -s                   Simple flag\n"
+             "  -a                   Another simple flag\n"
+             "  -m, -M, -o, -O       Multiple access letters\n"
+             "  --long               Long parameter name\n"
+             "  -k, --key            Parameter value\n";
+
+  remove(test_file_name);
+  test_file = fopen(test_file_name, "w+");
+  if (test_file == NULL) {
+    goto err_open;
+  }
+
+  tsh_option_print(options, TSH_ARRAY_SIZE(options), test_file);
+  if (fseek(test_file, 0, SEEK_SET) != 0) {
+    goto err_seek;
+  }
+
+  if (fread(buf, sizeof(buf), 1, test_file) != 1 && feof(test_file) == 0) {
+    goto err_read;
+  }
+
+  if (memcmp(buf, expected, strlen(expected)) != 0) {
+    goto err_test;
+  }
+
+  remove(test_file_name);
+  fclose(test_file);
+  return EXIT_SUCCESS;
+
+err_test:
+err_read:
+err_seek:
+  remove(test_file_name);
+  fclose(test_file);
+err_open:
   return EXIT_FAILURE;
 }

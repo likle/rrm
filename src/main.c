@@ -76,7 +76,7 @@ static void print_help(void)
 {
   fputs("Usage: tsh [OPTION]... [FILE]...\n", stdout);
   fputs("Moves the files to the trash.\n\n", stdout);
-  tsh_option_print(options, TSH_ARRAY_SIZE(options));
+  tsh_option_print(options, TSH_ARRAY_SIZE(options), stdout);
   fputs("\nBy default, tsh does not remove directories. Use the --recursive\n"
         "option to remove each listed directory too, along with all of its\n"
         "contents.",

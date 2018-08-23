@@ -4,17 +4,17 @@
 #include <stdio.h>
 
 static void tsh_option_print_letters(const tsh_option *option, bool *first,
-  int *accessor_length)
+  int *accessor_length, FILE *destination)
 {
   const char *access_letter;
   access_letter = option->access_letters;
   if (access_letter != NULL) {
     while (*access_letter) {
       if (*first) {
-        *accessor_length += printf("-%c", *access_letter);
+        *accessor_length += fprintf(destination, "-%c", *access_letter);
         *first = false;
       } else {
-        *accessor_length += printf(", -%c", *access_letter);
+        *accessor_length += fprintf(destination, ", -%c", *access_letter);
       }
       ++access_letter;
     }
@@ -22,18 +22,19 @@ static void tsh_option_print_letters(const tsh_option *option, bool *first,
 }
 
 static void tsh_option_print_name(const tsh_option *option, bool *first,
-  int *accessor_length)
+  int *accessor_length, FILE *destination)
 {
   if (option->access_name != NULL) {
     if (*first) {
-      *accessor_length += printf("--%s", option->access_name);
+      *accessor_length += fprintf(destination, "--%s", option->access_name);
     } else {
-      *accessor_length += printf(", --%s", option->access_name);
+      *accessor_length += fprintf(destination, ", --%s", option->access_name);
     }
   }
 }
 
-void tsh_option_print(const tsh_option *options, size_t option_count)
+void tsh_option_print(const tsh_option *options, size_t option_count,
+  FILE *destination)
 {
   size_t option_index;
   const tsh_option *option;
@@ -45,19 +46,19 @@ void tsh_option_print(const tsh_option *options, size_t option_count)
     accessor_length = 0;
     first = true;
 
-    fputs("  ", stdout);
+    fputs("  ", destination);
 
-    tsh_option_print_letters(option, &first, &accessor_length);
-    tsh_option_print_name(option, &first, &accessor_length);
+    tsh_option_print_letters(option, &first, &accessor_length, destination);
+    tsh_option_print_name(option, &first, &accessor_length, destination);
 
     for (i = accessor_length; i < 20; ++i) {
-      fputs(" ", stdout);
+      fputs(" ", destination);
     }
 
-    fputs(" ", stdout);
-    fputs(option->description, stdout);
+    fputs(" ", destination);
+    fputs(option->description, destination);
 
-    printf("\n");
+    fprintf(destination, "\n");
   }
 }
 
