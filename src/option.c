@@ -75,6 +75,14 @@ static const tsh_option *tsh_option_find_by_letter(tsh_option_context *context,
   // arguments anyway.
   for (i = 0; i < context->option_count; ++i) {
     option = &context->options[i];
+
+    // If this option doesn't have any access letters we will skip them.
+    if (option->access_letters == NULL) {
+      continue;
+    }
+
+    // Verify whether this option has the access letter in it's access letter
+    // string. If it does, then this is our option.
     if (strchr(option->access_letters, letter) != NULL) {
       return option;
     }
@@ -106,6 +114,12 @@ static void tsh_option_parse_value(tsh_option_context *context,
         *c = context->argv[context->index];
         context->value = *c;
       }
+    }
+
+    // Move c to the end of the value, to not confuse the caller about our
+    // position.
+    while (**c) {
+      ++(*c);
     }
   }
 }
@@ -155,6 +169,7 @@ static void tsh_option_parse_access_letter(tsh_option_context *context,
 {
   const tsh_option *option;
   char *n = *c;
+  char *v;
 
   // Figure out which option this letter belongs to. This might return NULL if
   // the letter is not registered, which means the user supplied an unknown
@@ -164,6 +179,8 @@ static void tsh_option_parse_access_letter(tsh_option_context *context,
   // specifically, it will remain '?' within the context.
   option = tsh_option_find_by_letter(context, n[context->inner_index]);
   if (option == NULL) {
+    ++context->index;
+    context->inner_index = 0;
     return;
   }
 
@@ -173,10 +190,11 @@ static void tsh_option_parse_access_letter(tsh_option_context *context,
 
   // And now we try to parse the value. This function will also check whether
   // this option is actually supposed to have a value.
-  tsh_option_parse_value(context, option, c);
+  v = &n[++context->inner_index];
+  tsh_option_parse_value(context, option, &v);
 
   // Check whether we reached the end of this option argument.
-  if (n[++context->inner_index] == '\0') {
+  if (*v == '\0') {
     ++context->index;
     context->inner_index = 0;
   }
@@ -294,4 +312,10 @@ char tsh_option_get(tsh_option_context *context)
 {
   // We just return the identifier here.
   return context->identifier;
+}
+
+const char *tsh_option_get_value(tsh_option_context *context)
+{
+  // We just return the internal value pointer of the context.
+  return context->value;
 }

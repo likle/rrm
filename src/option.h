@@ -39,6 +39,4 @@ char tsh_option_get(tsh_option_context *context);
 
 const char *tsh_option_get_value(tsh_option_context *context);
 
-size_t tsh_option_get_value_size(tsh_option_context *context);
-
 #endif

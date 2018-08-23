@@ -39,7 +39,10 @@ add_executable(${TRASH_TARGET}
 
 # add tests
 enable_testing()
-add_executable(${TEST_TARGET} "${TEST_DIRECTORY}/main.c" "${TEST_DIRECTORY}/option_test.c")
+add_executable(${TEST_TARGET}
+  "${TEST_DIRECTORY}/main.c"
+  "${SOURCE_DIRECTORY}/option.c"
+  "${TEST_DIRECTORY}/option_test.c")
 target_include_directories(${TEST_TARGET} PRIVATE "${SOURCE_DIRECTORY}")
 
 # enable warnings
