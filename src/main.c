@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
   struct tsh_config config;
   tsh_option_context ctx;
   char option;
+  int index;
 
   setlocale(LC_ALL, "");
 
@@ -105,6 +106,7 @@ int main(int argc, char *argv[])
 
   while (tsh_option_fetch(&ctx)) {
     option = tsh_option_get(&ctx);
+    index = tsh_option_get_index(&ctx);
     switch (option) {
     case 'r':
     case 'R':
@@ -119,12 +121,13 @@ int main(int argc, char *argv[])
     case 'h':
       print_help();
       return EXIT_SUCCESS;
-    case 't':
-      fprintf(stdout, "VAL: %s\n", ctx.value);
-      break;
     case '?':
     default:
-      fprintf(stderr, "Unknown option.");
+      fprintf(stderr,
+        TSH_TARGET ": invalid option '%s'. \n"
+                   "Try '" TSH_TARGET " --help' for more information. \n",
+        argv[index - 1]);
+
       return EXIT_FAILURE;
     }
   }

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 # set project name
 project(tsh
-  VERSION 0.0.1
+  VERSION 0.1.0
   DESCRIPTION "A soft-delete replacement for rm"
   LANGUAGES C)
 
@@ -36,6 +36,8 @@ add_executable(${TRASH_TARGET}
   "${SOURCE_DIRECTORY}/main.c"
   "${SOURCE_DIRECTORY}/option.h"
   "${SOURCE_DIRECTORY}/option.c"
+  "${SOURCE_DIRECTORY}/trash.h"
+  "${SOURCE_DIRECTORY}/trash.c"
   "${SOURCE_DIRECTORY}/utils.h")
 
 # add tests

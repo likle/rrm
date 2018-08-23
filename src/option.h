@@ -1,15 +1,16 @@
 #pragma once
 
+/**
+ * This is a simple alternative cross-platform implementation of getopt, which
+ * is used to parse argument strings submitted to the executable (argc and argv
+ * which are received in the main function).
+ */
+
 #ifndef TSH_OPTION_H
 #define TSH_OPTION_H
 
 #include <stdbool.h>
 #include <stddef.h>
-
-/**
- * This is a simple alternative cross-platform implementation of getopt, which
- * parses argument strings.
- */
 
 /**
  * An option is used to describe a flag/argument option submitted when the
@@ -111,9 +112,10 @@ const char *tsh_option_get_value(const tsh_option_context *context);
 /**
  * @brief Gets the current index of the context.
  *
- * This function gets the current index within the argv arguments of the
- * context. This is particularly useful to inspect the original argument array,
- * or to get non-option arguments after option fetching has finished.
+ * This function gets the index within the argv arguments of the context. The
+ * context always points to the next item which it will inspect. This is
+ * particularly useful to inspect the original argument array, or to get
+ * non-option arguments after option fetching has finished.
  *
  * @param context The context from which the option was fetched.
  * @return Returns the current index of the context.
