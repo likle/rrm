@@ -101,6 +101,10 @@ int main(int argc, char *argv[])
 
   setlocale(LC_ALL, "");
 
+  for(int i = 0; i < argc; ++i){
+    printf("%s\n", argv[i]);
+  }
+
   tsh_option_prepare(&ctx, options, TSH_ARRAY_SIZE(options), argc, argv);
 
   while (tsh_option_fetch(&ctx)) {

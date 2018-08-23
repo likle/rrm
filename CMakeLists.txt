@@ -10,6 +10,7 @@ project(tsh
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(EnableWarnings)
 include(CTest)
+include(CreateTestList)
 
 # configure requirements
 set(CMAKE_C_STANDARD 11)
@@ -39,6 +40,22 @@ add_executable(${TRASH_TARGET}
 
 # add tests
 enable_testing()
+create_test(DEFAULT option simple)
+create_test(DEFAULT option alias)
+create_test(DEFAULT option unknown_short)
+create_test(DEFAULT option unknown_long)
+create_test(DEFAULT option combined)
+create_test(DEFAULT option short_equal_value)
+create_test(DEFAULT option long_equal_value)
+create_test(DEFAULT option short_space_value)
+create_test(DEFAULT option long_space_value)
+create_test(DEFAULT option short_missing_value)
+create_test(DEFAULT option long_missing_value)
+create_test(DEFAULT option ending)
+create_test(DEFAULT option mixed)
+create_test(DEFAULT option complex)
+create_test_list(DEFAULT "${TEST_DIRECTORY}/tests.h")
+
 add_executable(${TEST_TARGET}
   "${TEST_DIRECTORY}/main.c"
   "${SOURCE_DIRECTORY}/option.c"

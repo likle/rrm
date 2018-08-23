@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <memory.h>
 #include <option.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <utils.h>
 #include <wordexp.h>
@@ -80,8 +81,9 @@ static void destroy_args()
   wordfree(&wordexp_value);
 }
 
-static void option_test_run(int argc, char *argv[])
+static int option_test_run(int argc, char *argv[])
 {
+  int index;
   char identifier;
   tsh_option_context context;
 
@@ -116,9 +118,288 @@ static void option_test_run(int argc, char *argv[])
       break;
     }
   }
+
+  index = tsh_option_get_index(&context);
+  if (tsh_option_fetch(&context) != false) {
+    return -1;
+  }
+
+  if (tsh_option_get_index(&context) != index) {
+    return -1;
+  }
+
+  return tsh_option_get_index(&context);
 }
 
-int option_args(void)
+int option_complex(void)
+{
+  int status;
+
+  status = make_args("test file1 -s -- -a -- a file");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (!result.simple_flag || result.another || result.multiaccess_flags ||
+      result.long_parameter || result.value_parameter || result.unknown ||
+      result.def || result.value != NULL) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_mixed(void)
+{
+  int status, i, j;
+  const char *values[] = {"file1", "mixed", "file3", "file2", "-m",
+    "parameters", "file4"};
+
+  status = make_args(
+    "test -s file1 -k=value file2 -a mixed file3 -- -m parameters file4");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0 || argc - status != 7) {
+    goto err_wrong;
+  }
+
+  /* The following should come after the index:
+   * --
+   * file1
+   * mixed
+   * file3
+   * file2
+   * -m
+   * parameters
+   * file4
+   */
+  for (i = 0; i < TSH_ARRAY_SIZE(values); ++i) {
+    for (j = status; j < argc; ++j) {
+      if (strcmp(argv[j], values[i]) == 0) {
+        goto found;
+      }
+    }
+
+    goto err_wrong;
+  found:;
+  }
+
+  if (!result.simple_flag || !result.another || result.multiaccess_flags ||
+      result.long_parameter || !result.value_parameter || result.unknown ||
+      result.def || result.value == NULL ||
+      strcmp(result.value, "value") != 0) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_ending(void)
+{
+  int status;
+
+  status = make_args("test -s -- -a");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (!result.simple_flag || result.another || result.multiaccess_flags ||
+      result.long_parameter || result.value_parameter || result.unknown ||
+      result.def || result.value != NULL) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_long_missing_value(void)
+{
+  int status;
+
+  status = make_args("test --key");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (result.simple_flag || result.another || result.multiaccess_flags ||
+      result.long_parameter || !result.value_parameter || result.unknown ||
+      result.def || result.value != NULL) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_short_missing_value(void)
+{
+  int status;
+
+  status = make_args("test -k");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (result.simple_flag || result.another || result.multiaccess_flags ||
+      result.long_parameter || !result.value_parameter || result.unknown ||
+      result.def || result.value != NULL) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_long_space_value(void)
+{
+  int status;
+
+  status = make_args("test --key super_value");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (result.simple_flag || result.another || result.multiaccess_flags ||
+      result.long_parameter || !result.value_parameter || result.unknown ||
+      result.def || result.value == NULL ||
+      strcmp(result.value, "super_value") != 0) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_short_space_value(void)
+{
+  int status;
+
+  status = make_args("test -k test_value");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (result.simple_flag || result.another || result.multiaccess_flags ||
+      result.long_parameter || !result.value_parameter || result.unknown ||
+      result.def || result.value == NULL ||
+      strcmp(result.value, "test_value") != 0) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_long_equal_value(void)
+{
+  int status;
+
+  status = make_args("test --key=super_value");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (result.simple_flag || result.another || result.multiaccess_flags ||
+      result.long_parameter || !result.value_parameter || result.unknown ||
+      result.def || result.value == NULL ||
+      strcmp(result.value, "super_value") != 0) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_short_equal_value(void)
 {
   int status;
 
@@ -127,7 +408,10 @@ int option_args(void)
     goto err_setup;
   }
 
-  option_test_run(argc, argv);
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
 
   if (result.simple_flag || result.another || result.multiaccess_flags ||
       result.long_parameter || !result.value_parameter || result.unknown ||
@@ -155,9 +439,102 @@ int option_combined(void)
     goto err_setup;
   }
 
-  option_test_run(argc, argv);
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
 
   if (!result.simple_flag || !result.another || !result.multiaccess_flags ||
+      result.long_parameter || result.value_parameter || result.unknown ||
+      result.def || result.value != NULL) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_unknown_long(void)
+{
+  int status;
+
+  status = make_args("test --unknown");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (result.simple_flag || result.another || result.multiaccess_flags ||
+      result.long_parameter || result.value_parameter || !result.unknown ||
+      result.def || result.value != NULL) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_unknown_short(void)
+{
+  int status;
+
+  status = make_args("test -u");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (result.simple_flag || result.another || result.multiaccess_flags ||
+      result.long_parameter || result.value_parameter || !result.unknown ||
+      result.def || result.value != NULL) {
+    goto err_wrong;
+  }
+
+  destroy_args();
+
+  return EXIT_SUCCESS;
+
+err_wrong:
+  destroy_args();
+err_setup:
+  return EXIT_FAILURE;
+}
+
+int option_alias(void)
+{
+  int status;
+
+  status = make_args("test -O");
+  if (status != 0) {
+    goto err_setup;
+  }
+
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
+
+  if (result.simple_flag || result.another || !result.multiaccess_flags ||
       result.long_parameter || result.value_parameter || result.unknown ||
       result.def || result.value != NULL) {
     goto err_wrong;
@@ -182,7 +559,10 @@ int option_simple(void)
     goto err_setup;
   }
 
-  option_test_run(argc, argv);
+  status = option_test_run(argc, argv);
+  if (status < 0) {
+    goto err_wrong;
+  }
 
   if (!result.simple_flag || result.another || result.multiaccess_flags ||
       result.long_parameter || result.value_parameter || result.unknown ||

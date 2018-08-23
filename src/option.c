@@ -34,6 +34,7 @@ void tsh_option_prepare(tsh_option_context *context, const tsh_option *options,
   context->argv = argv;
   context->index = 1;
   context->inner_index = 0;
+  context->forced_end = false;
 }
 
 static const tsh_option *tsh_option_find_by_name(tsh_option_context *context,
@@ -129,10 +130,6 @@ static void tsh_option_parse_access_name(tsh_option_context *context, char **c)
   const tsh_option *option;
   char *n;
 
-  // No matter whether this is a valid option or not, we will not parse it again
-  // so we will move the index to the next.
-  ++context->index;
-
   // Now we need to extract the access name, which is any symbol up to a '=' or
   // a '\0'.
   n = *c;
@@ -152,6 +149,9 @@ static void tsh_option_parse_access_name(tsh_option_context *context, char **c)
   // it will remain '?' within the context.
   option = tsh_option_find_by_name(context, n, (size_t)(*c - n));
   if (option == NULL) {
+    // Since this option is invalid, we will move on to the next index. There is
+    // nothing we can do about this.
+    ++context->index;
     return;
   }
 
@@ -162,6 +162,9 @@ static void tsh_option_parse_access_name(tsh_option_context *context, char **c)
   // And now we try to parse the value. This function will also check whether
   // this option is actually supposed to have a value.
   tsh_option_parse_value(context, option, c);
+
+  // And finally we move on to the next index.
+  ++context->index;
 }
 
 static void tsh_option_parse_access_letter(tsh_option_context *context,
@@ -235,7 +238,7 @@ static bool tsh_option_prepare_next(tsh_option_context *context)
   // Grab a pointer to the string and verify that it is not the end. If it is
   // the end, we have to return false to indicate that we finished.
   c = context->argv[next_option_index];
-  if (c == NULL) {
+  if (context->forced_end || c == NULL) {
     return false;
   }
 
@@ -292,6 +295,8 @@ bool tsh_option_fetch(tsh_option_context *context)
     // is the case, we will not move to the next index. That ensures that
     // another call to the fetch function will not skip the "--".
     if (*c == '\0') {
+      ++context->index;
+      context->forced_end = true;
       return false;
     }
 
@@ -308,14 +313,20 @@ bool tsh_option_fetch(tsh_option_context *context)
   return true;
 }
 
-char tsh_option_get(tsh_option_context *context)
+char tsh_option_get(const tsh_option_context *context)
 {
   // We just return the identifier here.
   return context->identifier;
 }
 
-const char *tsh_option_get_value(tsh_option_context *context)
+const char *tsh_option_get_value(const tsh_option_context *context)
 {
   // We just return the internal value pointer of the context.
   return context->value;
+}
+
+int tsh_option_get_index(const tsh_option_context *context)
+{
+  // Either we point to a value item,
+  return context->index;
 }

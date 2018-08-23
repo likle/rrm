@@ -24,6 +24,7 @@ typedef struct tsh_option_context
 
   int index;
   int inner_index;
+  bool forced_end;
   char identifier;
   char *value;
 } tsh_option_context;
@@ -35,8 +36,10 @@ void tsh_option_prepare(tsh_option_context *context,
 
 bool tsh_option_fetch(tsh_option_context *context);
 
-char tsh_option_get(tsh_option_context *context);
+char tsh_option_get(const tsh_option_context *context);
 
-const char *tsh_option_get_value(tsh_option_context *context);
+const char *tsh_option_get_value(const tsh_option_context *context);
+
+int tsh_option_get_index(const tsh_option_context *context);
 
 #endif
