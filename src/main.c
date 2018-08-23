@@ -20,19 +20,19 @@ static struct tsh_option options[] = {
     .access_letters = "f",
     .access_name = "force",
     .value_name = NULL,
-    .description = "Ignore non-existent files and arguments, never prompt"},
+    .description = "ignore non-existent files and arguments, never prompt"},
 
   {.identifier = 'r',
     .access_letters = "rR",
     .access_name = "recursive",
     .value_name = NULL,
-    .description = "Remove directories and their contents recursively"},
+    .description = "remove directories and their contents recursively"},
 
   {.identifier = 'd',
     .access_letters = "d",
     .access_name = NULL,
     .value_name = NULL,
-    .description = "Remove directories and their contents recursively"},
+    .description = "remove empty directories"},
 
   {.identifier = 'V',
     .access_letters = NULL,
@@ -76,8 +76,8 @@ static void print_help(void)
 {
   fputs("Usage: tsh [OPTION]... [FILE]...\n", stdout);
   fputs("Moves the files to the trash.\n\n", stdout);
-  tsh_option_print(options, sizeof(options));
-  fputs("By default, tsh does not remove directories. Use the --recursive\n"
+  tsh_option_print(options, TSH_ARRAY_SIZE(options));
+  fputs("\nBy default, tsh does not remove directories. Use the --recursive\n"
         "option to remove each listed directory too, along with all of its\n"
         "contents.",
     stdout);
@@ -100,10 +100,6 @@ int main(int argc, char *argv[])
   char option;
 
   setlocale(LC_ALL, "");
-
-  for(int i = 0; i < argc; ++i){
-    printf("%s\n", argv[i]);
-  }
 
   tsh_option_prepare(&ctx, options, TSH_ARRAY_SIZE(options), argc, argv);
 

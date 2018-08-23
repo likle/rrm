@@ -3,24 +3,61 @@
 #include <memory.h>
 #include <stdio.h>
 
+static void tsh_option_print_letters(const tsh_option *option, bool *first,
+  int *accessor_length)
+{
+  const char *access_letter;
+  access_letter = option->access_letters;
+  if (access_letter != NULL) {
+    while (*access_letter) {
+      if (*first) {
+        *accessor_length += printf("-%c", *access_letter);
+        *first = false;
+      } else {
+        *accessor_length += printf(", -%c", *access_letter);
+      }
+      ++access_letter;
+    }
+  }
+}
+
+static void tsh_option_print_name(const tsh_option *option, bool *first,
+  int *accessor_length)
+{
+  if (option->access_name != NULL) {
+    if (*first) {
+      *accessor_length += printf("--%s", option->access_name);
+    } else {
+      *accessor_length += printf(", --%s", option->access_name);
+    }
+  }
+}
+
 void tsh_option_print(const tsh_option *options, size_t option_count)
 {
   size_t option_index;
   const tsh_option *option;
-  const char *access_letter;
+  bool first;
+  int i, accessor_length;
 
   for (option_index = 0; option_index < option_count; ++option_index) {
     option = &options[option_index];
-    fputs("    ", stdout);
+    accessor_length = 0;
+    first = true;
 
-    access_letter = option->access_letters;
-    if (access_letter != NULL) {
-      while (*access_letter) {
-        printf("-%c", *access_letter);
+    fputs("  ", stdout);
 
-        ++access_letter;
-      }
+    tsh_option_print_letters(option, &first, &accessor_length);
+    tsh_option_print_name(option, &first, &accessor_length);
+
+    for (i = accessor_length; i < 20; ++i) {
+      fputs(" ", stdout);
     }
+
+    fputs(" ", stdout);
+    fputs(option->description, stdout);
+
+    printf("\n");
   }
 }
 
