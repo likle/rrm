@@ -34,17 +34,41 @@ static struct tsh_option options[] = {
     .value_name = NULL,
     .description = "remove empty directories"},
 
-  {.identifier = 'V',
-    .access_letters = NULL,
-    .access_name = "version",
+  {.identifier = 'u',
+    .access_letters = "u",
+    .access_name = "undo",
     .value_name = NULL,
-    .description = "output version info and exit"},
+    .description = "recovers previously deleted dumps"},
+
+  {.identifier = 'o',
+    .access_letters = NULL,
+    .access_name = "output",
+    .value_name = "DIR",
+    .description = "specifies an output directory for recovery"},
+
+  {.identifier = 'l',
+    .access_letters = "l",
+    .access_name = "list",
+    .value_name = NULL,
+    .description = "lists previously deleted dumps"},
+
+  {.identifier = 'v',
+    .access_letters = "v",
+    .access_name = "verbose",
+    .value_name = NULL,
+    .description = "explain what is being done"},
 
   {.identifier = 'h',
     .access_letters = NULL,
     .access_name = "help",
     .value_name = NULL,
-    .description = "display this help and exit"}
+    .description = "display this help and exit"},
+
+  {.identifier = 'V',
+    .access_letters = NULL,
+    .access_name = "version",
+    .value_name = NULL,
+    .description = "output version info and exit"}
 
 };
 /*
@@ -75,11 +99,18 @@ int run(char **files)
 static void print_help(void)
 {
   fputs("Usage: tsh [OPTION]... [FILE]...\n", stdout);
-  fputs("Moves the files to the trash.\n\n", stdout);
+  fputs("   or: tsh [OPTION]... -l\n", stdout);
+  fputs("   or: tsh [OPTION]... -u [DUMP]...\n", stdout);
+  fputs("Moves files to the trash, recovers or lists dumps.\n\n", stdout);
   tsh_option_print(options, TSH_ARRAY_SIZE(options), stdout);
-  fputs("\nBy default, tsh does not remove directories. Use the --recursive\n"
-        "option to remove each listed directory too, along with all of its\n"
-        "contents.",
+
+  fputs("\nEach delete is kept in a separate trash dump. The --list flag can "
+        "be used to\n"
+        "receive DUMP information about previous delete operations operations. "
+        "Use the\n"
+        "--undo flag to recover the files of a dump. If no --output is "
+        "specified in\n"
+        "combination with --undo, the original file path will be used.\n",
     stdout);
 }
 

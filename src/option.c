@@ -3,6 +3,14 @@
 #include <memory.h>
 #include <stdio.h>
 
+static void tsh_option_print_value(const tsh_option *option,
+  int *accessor_length, FILE *destination)
+{
+  if (option->value_name != NULL) {
+    *accessor_length += fprintf(destination, "=%s", option->value_name);
+  }
+}
+
 static void tsh_option_print_letters(const tsh_option *option, bool *first,
   int *accessor_length, FILE *destination)
 {
@@ -50,6 +58,7 @@ void tsh_option_print(const tsh_option *options, size_t option_count,
 
     tsh_option_print_letters(option, &first, &accessor_length, destination);
     tsh_option_print_name(option, &first, &accessor_length, destination);
+    tsh_option_print_value(option, &accessor_length, destination);
 
     for (i = accessor_length; i < 20; ++i) {
       fputs(" ", destination);

@@ -624,7 +624,7 @@ int option_print(void)
              "  -a                   Another simple flag\n"
              "  -m, -M, -o, -O       Multiple access letters\n"
              "  --long               Long parameter name\n"
-             "  -k, --key            Parameter value\n";
+             "  -k, --key=VALUE      Parameter value\n";
 
   remove(test_file_name);
   test_file = fopen(test_file_name, "w+");
