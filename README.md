@@ -51,22 +51,22 @@ combination with --undo, the original file path will be used.
 ```
 
 ## Alternatives
-There are many alternatives to ``tsh``. Here are some listed:
-* The Python tool [trash-cli](https://github.com/andreafrancia/trash-cli) by @andreafrancia
-* The D library [trashcan](https://github.com/FreeSlave/trashcan) by @FreeSlave
-* The JavaScript tool [trash-cli](https://github.com/sindresorhus/trash-cli) by @sindresorhus
-* The JavaScript library [trash](https://github.com/sindresorhus/trash) by @sindresorhus
-* The Swift tool [macos-trash](https://github.com/sindresorhus/macos-trash) by @sindresorhus
-* The Bash script [brash](https://gist.github.com/dcparris/2508959) by @dcparris
-* The Shell script [safe-rm](https://github.com/kaelzhang/shell-safe-rm) by @kaelzhang
-* The Rust tool [rip](https://github.com/nivekuil/rip) by nivekuil
-* The Bash script [rmtrash](https://github.com/PhrozenByte/rmtrash) by PhrozenByte
-* The Swift tool [trash](https://github.com/macmade/trash) by macmade
-* The Linux Service [Trashd](https://github.com/FedeDP/Trashd) by @FedeDP
-* The Objective-C tool [trash](https://github.com/jemtucker/trash) by @jemtucker
-* The Python library [pytrash](https://github.com/nioperas06/pytrash) by @nioperas06
-* The Shell tool [fish-trash](https://github.com/arbourd/fish-trash) by @arbourd
-* The Shell tool [Silent-Trash](https://github.com/JayBrown/Silent-Trash) by @JayBrown
-* The Shell tool [trash-cli](https://github.com/wicksome/trash-cli) by @wicksome
-* The Shell tool [dustbin-bin](https://github.com/Taguar258/dustbin-bin) by @Taguar258
-* The Python tool [rubbish](https://github.com/jaxke/rubbish) by @jaxke
+
+| name                                                       | type    | language    | os                  | author                                              |
+|------------------------------------------------------------|---------|-------------|---------------------|-----------------------------------------------------|
+| [trash-cli](https://github.com/andreafrancia/trash-cli)    | tool    | python      | linux               | [@andreafrancia](https://github.com/andreafrancia/) |
+| [trashcan](https://github.com/FreeSlave/trashcan)          | library | D           | linux,macOS,windows | [@FreeSlave](https://github.com/FreeSlave/)         |
+| [trash-cli](https://github.com/sindresorhus/trash-cli)     | tool    | javascript  | linux,macOS,windows | [@sindresorhus](https://github.com/sindresorhus/)   |
+| [trash](https://github.com/sindresorhus/trash)             | library | javascript  | linux,macOS,windows | [@sindresorhus](https://github.com/sindresorhus/)   |
+| [macos-trash](https://github.com/sindresorhus/macos-trash) | tool    | swift       | macOS               | [@sindresorhus](https://github.com/sindresorhus/)   |
+| [brash](https://gist.github.com/dcparris/2508959)          | tool    | bash        | linux,macOS (?)     | [@dcparris](https://github.com/dcparris/)           |
+| [safe-rm](https://github.com/kaelzhang/shell-safe-rm)      | tool    | shell       | linux,macOS         | [@kaelzhang](https://github.com/kaelzhang/)         |
+| [rip](https://github.com/nivekuil/rip)                     | tool    | rust        | linux,macOS         | [@nivekuil](https://github.com/nivekuil/)           |
+| [rmtrash](https://github.com/PhrozenByte/rmtrash)          | tool    | bash        | linux               | [@PhrozenByte](https://github.com/PhrozenByte/)     |
+| [trash](https://github.com/macmade/trash)                  | tool    | swift       | macOS               | [@macmade](https://github.com/macmade/)             |
+| [Trashd](https://github.com/FedeDP/Trashd)                 | service | C           | linux               | [@FedeDP](https://github.com/FedeDP/)               |
+| [trash](https://github.com/jemtucker/trash)                | tool    | objective-c | macOS               | [@jemtucker](https://github.com/jemtucker/)         |
+| [fish-trash](https://github.com/arbourd/fish-trash)        | tool    | shell       | macOS               | [@arbourd](https://github.com/arbourd/)             |
+| [trash-cli](https://github.com/wicksome/trash-cli)         | tool    | shell       | linux,macOS         | [@wicksome](https://github.com/wicksome/)           |
+| [dustbin-bin](https://github.com/Taguar258/dustbin-bin)    | tool    | shell       | linux,macOS (?)     | [@Taguar258](https://github.com/Taguar258/)         |
+| [rubbish](https://github.com/jaxke/rubbish)                | tool    | python      | linux               | [@jaxke](https://github.com/jaxke/)                 |
