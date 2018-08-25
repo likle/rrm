@@ -8,13 +8,13 @@
 #include <stdint.h>
 
 /**
- * A trash is a directory which contains deleted data.
+ * A trash is a hidden directory which contains deleted data.
  */
 typedef struct rrm_trash
 {
   const char *path;
   int lock_fd;
-  int state_fd;
+  int info_fd;
 } rrm_trash;
 
 /**

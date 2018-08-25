@@ -17,12 +17,10 @@ typedef struct rrm_dump
   int info_fd;
 } rrm_dump;
 
-rrm_status rrm_dump_create(rrm_trash *trash, int *dump_id);
+rrm_status rrm_dump_create(rrm_trash *trash, const char **files, int *dump_id);
 
-int rrm_dump_delete(rrm_trash *trash, int dump_id);
+rrm_status rrm_dump_delete(rrm_trash *trash, int dump_id);
 
-int rrm_dump_open(rrm_dump *dump, rrm_trash *trash, int dump_id);
-
-void rrm_dump_close(rrm_trash *trash);
+rrm_status rrm_dump_recover(rrm_trash *trash, int dump_id, const char *output);
 
 #endif

@@ -5,7 +5,7 @@
 # rrm - trash utility
 The ``rrm`` (**r**ecoverable **r**e**m**ove) utility is a simple tool which can be 
 used as a replacement for rm. While rm permanently deletes all files, ``rrm`` 
-will just move them it to a trash.
+will be able to recover those files.
     
 ## WARNING
 This is a work in progress and not yet ready to use.

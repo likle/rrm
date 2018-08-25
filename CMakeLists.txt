@@ -62,12 +62,19 @@ create_test(DEFAULT option long_missing_value)
 create_test(DEFAULT option ending)
 create_test(DEFAULT option mixed)
 create_test(DEFAULT option complex)
+create_test(DEFAULT trash open_and_create)
+create_test(DEFAULT trash create_open)
+create_test(DEFAULT trash create_fail_exists)
+create_test(DEFAULT trash open_fail_no_entry)
 create_test_list(DEFAULT "${TEST_DIRECTORY}/tests.h")
 
 add_executable(${TEST_TARGET}
   "${TEST_DIRECTORY}/main.c"
+  "${SOURCE_DIRECTORY}/status.c"
   "${SOURCE_DIRECTORY}/option.c"
-  "${TEST_DIRECTORY}/option_test.c")
+  "${SOURCE_DIRECTORY}/trash.c"
+  "${TEST_DIRECTORY}/option_test.c"
+  "${TEST_DIRECTORY}/trash_test.c")
 target_include_directories(${TEST_TARGET} PRIVATE "${SOURCE_DIRECTORY}")
 
 # enable warnings

@@ -9,4 +9,4 @@
 #define RRM_AUTHOR "Leonard Iklé"
 
 #define RRM_LOCK_FILE_NAME "LOCK"
-#define RRM_STATE_FILE_NAME "STATE"
+#define RRM_INFO_FILE_NAME "INFO"
