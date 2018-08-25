@@ -70,7 +70,7 @@ static int rrm_trash_create_info(const char *info_path, bool fail_if_exists)
   char *buf[255];
   int info_fd;
 
-  info_fd = open(info_path, O_WRONLY | O_EXCL | O_CREAT);
+  info_fd = open(info_path, O_WRONLY | O_EXCL | O_CREAT, 666);
   if (info_fd < 0) {
     if (errno == EEXIST && !fail_if_exists) {
       info_fd = open(info_path, O_WRONLY);
@@ -118,7 +118,7 @@ rrm_status rrm_trash_create_internal(const char *path, bool fail_if_exists,
     goto err_lock_path;
   }
 
-  if ((*lock_fd = open(lock_path, O_WRONLY | O_CREAT)) < 0) {
+  if ((*lock_fd = open(lock_path, O_WRONLY | O_CREAT, 666)) < 0) {
     status = rrm_status_from_os(errno);
     goto err_open_lock;
   }
