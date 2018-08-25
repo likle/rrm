@@ -7,3 +7,6 @@
 #define TSH_VERSION_PATCH ${PROJECT_VERSION_PATCH}
 
 #define TSH_AUTHOR "Leonard Iklé"
+
+#define TSH_LOCK_FILE_NAME "LOCK"
+#define TSH_STATE_FILE_NAME "STATE"

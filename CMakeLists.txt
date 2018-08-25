@@ -33,11 +33,15 @@ endif()
 
 # add the main executable
 add_executable(${TRASH_TARGET}
+  "${SOURCE_DIRECTORY}/dump.c"
+  "${SOURCE_DIRECTORY}/dump.h"
   "${SOURCE_DIRECTORY}/main.c"
-  "${SOURCE_DIRECTORY}/option.h"
   "${SOURCE_DIRECTORY}/option.c"
-  "${SOURCE_DIRECTORY}/trash.h"
+  "${SOURCE_DIRECTORY}/option.h"
+  "${SOURCE_DIRECTORY}/status.c"
+  "${SOURCE_DIRECTORY}/status.h"
   "${SOURCE_DIRECTORY}/trash.c"
+  "${SOURCE_DIRECTORY}/trash.h"
   "${SOURCE_DIRECTORY}/utils.h")
 
 # add tests

@@ -8,4 +8,10 @@
  */
 #define TSH_ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+/**
+ * Used to remove warning for "unused parameters" or "unused variable". We do a
+ * comparison here since some IDEs will still complain otherwise.
+ */
+#define TSH_UNUSED(p) (void)(p)
+
 #endif

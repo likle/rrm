@@ -9,24 +9,6 @@ While rm permanently deletes all files, ``tsh`` will just move them it to a tras
 ## WARNING
 This is a work in progress and not yet ready to use.
 
-## Examples
-A couple of examples:
-```bash
-# delete all files from the working directory
-tsh *
-```
-
-```bash
-# delete all files and directories
-tsh -r *
-```
-
-```bash
-# delete an empty folder
-tsh -d myfolder
-```
-
-
 ## Usage
 ```
 Usage: tsh [OPTION]... [FILE]...
@@ -48,25 +30,27 @@ Each delete is kept in a separate trash dump. The --list flag can be used to
 receive DUMP information about previous delete operations operations. Use the
 --undo flag to recover the files of a dump. If no --output is specified in
 combination with --undo, the original file path will be used.
-```
+``` 
 
 ## Alternatives
+There are many alternatives. Pick the one you like most.
 
-| name                                                       | type    | language    | os                  | author                                              |
-|------------------------------------------------------------|---------|-------------|---------------------|-----------------------------------------------------|
-| [trash-cli](https://github.com/andreafrancia/trash-cli)    | tool    | python      | linux               | [@andreafrancia](https://github.com/andreafrancia/) |
-| [trashcan](https://github.com/FreeSlave/trashcan)          | library | D           | linux,macOS,windows | [@FreeSlave](https://github.com/FreeSlave/)         |
-| [trash-cli](https://github.com/sindresorhus/trash-cli)     | tool    | javascript  | linux,macOS,windows | [@sindresorhus](https://github.com/sindresorhus/)   |
-| [trash](https://github.com/sindresorhus/trash)             | library | javascript  | linux,macOS,windows | [@sindresorhus](https://github.com/sindresorhus/)   |
-| [macos-trash](https://github.com/sindresorhus/macos-trash) | tool    | swift       | macOS               | [@sindresorhus](https://github.com/sindresorhus/)   |
-| [brash](https://gist.github.com/dcparris/2508959)          | tool    | bash        | linux,macOS (?)     | [@dcparris](https://github.com/dcparris/)           |
-| [safe-rm](https://github.com/kaelzhang/shell-safe-rm)      | tool    | shell       | linux,macOS         | [@kaelzhang](https://github.com/kaelzhang/)         |
-| [rip](https://github.com/nivekuil/rip)                     | tool    | rust        | linux,macOS         | [@nivekuil](https://github.com/nivekuil/)           |
-| [rmtrash](https://github.com/PhrozenByte/rmtrash)          | tool    | bash        | linux               | [@PhrozenByte](https://github.com/PhrozenByte/)     |
-| [trash](https://github.com/macmade/trash)                  | tool    | swift       | macOS               | [@macmade](https://github.com/macmade/)             |
-| [Trashd](https://github.com/FedeDP/Trashd)                 | service | C           | linux               | [@FedeDP](https://github.com/FedeDP/)               |
-| [trash](https://github.com/jemtucker/trash)                | tool    | objective-c | macOS               | [@jemtucker](https://github.com/jemtucker/)         |
-| [fish-trash](https://github.com/arbourd/fish-trash)        | tool    | shell       | macOS               | [@arbourd](https://github.com/arbourd/)             |
-| [trash-cli](https://github.com/wicksome/trash-cli)         | tool    | shell       | linux,macOS         | [@wicksome](https://github.com/wicksome/)           |
-| [dustbin-bin](https://github.com/Taguar258/dustbin-bin)    | tool    | shell       | linux,macOS (?)     | [@Taguar258](https://github.com/Taguar258/)         |
-| [rubbish](https://github.com/jaxke/rubbish)                | tool    | python      | linux               | [@jaxke](https://github.com/jaxke/)                 |
+| name                                                       | type    | language    | os                  | author                                              | commit activity                                                                                  |
+|------------------------------------------------------------|---------|-------------|---------------------|-----------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| [trash-cli](https://github.com/andreafrancia/trash-cli)    | tool    | python      | linux               | [@andreafrancia](https://github.com/andreafrancia/) | ![commit activity](https://img.shields.io/github/commit-activity/y/andreafrancia/trash-cli.svg)  |
+| [trashcan](https://github.com/FreeSlave/trashcan)          | library | D           | linux,macOS,windows | [@FreeSlave](https://github.com/FreeSlave/)         | ![commit activity](https://img.shields.io/github/commit-activity/y/FreeSlave/trashcan.svg)       |
+| [trash-cli](https://github.com/sindresorhus/trash-cli)     | tool    | javascript  | linux,macOS,windows | [@sindresorhus](https://github.com/sindresorhus/)   | ![commit activity](https://img.shields.io/github/commit-activity/y/sindresorhus/trash-cli.svg)   |
+| [trash](https://github.com/sindresorhus/trash)             | library | javascript  | linux,macOS,windows | [@sindresorhus](https://github.com/sindresorhus/)   | ![commit activity](https://img.shields.io/github/commit-activity/y/sindresorhus/trash.svg)       |
+| [macos-trash](https://github.com/sindresorhus/macos-trash) | tool    | swift       | macOS               | [@sindresorhus](https://github.com/sindresorhus/)   | ![commit activity](https://img.shields.io/github/commit-activity/y/sindresorhus/macos-trash.svg) |
+| [safe-rm](https://github.com/kaelzhang/shell-safe-rm)      | tool    | shell       | linux,macOS         | [@kaelzhang](https://github.com/kaelzhang/)         | ![commit activity](https://img.shields.io/github/commit-activity/y/kaelzhang/shell-safe-rm.svg)  |
+| [rip](https://github.com/nivekuil/rip)                     | tool    | rust        | linux,macOS         | [@nivekuil](https://github.com/nivekuil/)           | ![commit activity](https://img.shields.io/github/commit-activity/y/nivekuil/rip.svg)             |
+| [rmtrash](https://github.com/PhrozenByte/rmtrash)          | tool    | bash        | linux               | [@PhrozenByte](https://github.com/PhrozenByte/)     | ![commit activity](https://img.shields.io/github/commit-activity/y/PhrozenByte/rmtrash.svg)      |
+| [trash](https://github.com/macmade/trash)                  | tool    | swift       | macOS               | [@macmade](https://github.com/macmade/)             | ![commit activity](https://img.shields.io/github/commit-activity/y/macmade/trash.svg)            |
+| [Trashd](https://github.com/FedeDP/Trashd)                 | service | C           | linux               | [@FedeDP](https://github.com/FedeDP/)               | ![commit activity](https://img.shields.io/github/commit-activity/y/FedeDP/Trashd.svg)            |
+| [trash](https://github.com/jemtucker/trash)                | tool    | objective-c | macOS               | [@jemtucker](https://github.com/jemtucker/)         | ![commit activity](https://img.shields.io/github/commit-activity/y/jemtucker/trash.svg)          |
+| [fish-trash](https://github.com/arbourd/fish-trash)        | tool    | shell       | macOS               | [@arbourd](https://github.com/arbourd/)             | ![commit activity](https://img.shields.io/github/commit-activity/y/arbourd/fish-trash.svg)       |
+| [trash-cli](https://github.com/wicksome/trash-cli)         | tool    | shell       | linux,macOS         | [@wicksome](https://github.com/wicksome/)           | ![commit activity](https://img.shields.io/github/commit-activity/y/wicksome/trash-cli.svg)       |
+| [dustbin-bin](https://github.com/Taguar258/dustbin-bin)    | tool    | shell       | linux,macOS (?)     | [@Taguar258](https://github.com/Taguar258/)         | ![commit activity](https://img.shields.io/github/commit-activity/y/Taguar258/dustbin-bin.svg)    |
+| [rubbish](https://github.com/jaxke/rubbish)                | tool    | Python      | linux               | [@jaxke](https://github.com/jaxke/)                 | ![commit activity](https://img.shields.io/github/commit-activity/y/jaxke/rubbish.svg)            |
+| [softrm](https://github.com/danielmanesku/softrm)          | tool    | Go          | linux               | [@danielmanesku](https://github.com/danielmanesku/) | ![commit activity](https://img.shields.io/github/commit-activity/y/danielmanesku/softrm.svg)     |
+| [brash](https://gist.github.com/dcparris/2508959)          | tool    | bash        | linux,macOS (?)     | [@dcparris](https://github.com/dcparris/)           | ![commit activity](https://img.shields.io/badge/commit%20activity-none-red.svg)                  |
