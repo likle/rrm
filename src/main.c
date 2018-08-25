@@ -8,13 +8,13 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-struct tsh_config
+struct rrm_config
 {
   bool force : 1;
   bool recursive : 1;
 };
 
-static struct tsh_option options[] = {
+static struct rrm_option options[] = {
 
   {.identifier = 'f',
     .access_letters = "f",
@@ -98,11 +98,11 @@ int run(char **files)
 
 static void print_help(void)
 {
-  fputs("Usage: tsh [OPTION]... [FILE]...\n", stdout);
-  fputs("   or: tsh [OPTION]... -l\n", stdout);
-  fputs("   or: tsh [OPTION]... -u [DUMP]...\n", stdout);
+  fputs("Usage: rrm [OPTION]... [FILE]...\n", stdout);
+  fputs("   or: rrm [OPTION]... -l\n", stdout);
+  fputs("   or: rrm [OPTION]... -u [DUMP]...\n", stdout);
   fputs("Moves files to the trash, recovers or lists dumps.\n\n", stdout);
-  tsh_option_print(options, TSH_ARRAY_SIZE(options), stdout);
+  rrm_option_print(options, RRM_ARRAY_SIZE(options), stdout);
 
   fputs("\nEach delete is kept in a separate trash dump. The --list flag can "
         "be used to\n"
@@ -119,25 +119,25 @@ static void print_version(void)
   const char *build_year;
 
   build_year = __DATE__ + 7;
-  fputs("tsh " TSH_VERSION "\n", stdout);
-  fprintf(stdout, "Copyright (C) %s " TSH_AUTHOR "\n", build_year);
+  fputs("rrm " RRM_VERSION "\n", stdout);
+  fprintf(stdout, "Copyright (C) %s " RRM_AUTHOR "\n", build_year);
   fputs("License: MIT\n", stdout);
 }
 
 int main(int argc, char *argv[])
 {
-  struct tsh_config config;
-  tsh_option_context ctx;
+  struct rrm_config config;
+  rrm_option_context ctx;
   char option;
   int index;
 
   setlocale(LC_ALL, "");
 
-  tsh_option_prepare(&ctx, options, TSH_ARRAY_SIZE(options), argc, argv);
+  rrm_option_prepare(&ctx, options, RRM_ARRAY_SIZE(options), argc, argv);
 
-  while (tsh_option_fetch(&ctx)) {
-    option = tsh_option_get(&ctx);
-    index = tsh_option_get_index(&ctx);
+  while (rrm_option_fetch(&ctx)) {
+    option = rrm_option_get(&ctx);
+    index = rrm_option_get_index(&ctx);
     switch (option) {
     case 'r':
     case 'R':
@@ -155,8 +155,8 @@ int main(int argc, char *argv[])
     case '?':
     default:
       fprintf(stderr,
-        TSH_TARGET ": invalid option '%s'. \n"
-                   "Try '" TSH_TARGET " --help' for more information. \n",
+        RRM_TARGET ": invalid option '%s'. \n"
+                   "Try '" RRM_TARGET " --help' for more information. \n",
         argv[index - 1]);
 
       return EXIT_FAILURE;

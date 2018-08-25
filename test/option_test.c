@@ -7,7 +7,7 @@
 #include <utils.h>
 #include <wordexp.h>
 
-static struct tsh_option options[] = {
+static struct rrm_option options[] = {
 
   {.identifier = 's',
     .access_letters = "s",
@@ -39,7 +39,7 @@ static struct tsh_option options[] = {
     .value_name = "VALUE",
     .description = "Parameter value"}};
 
-struct tsh_result
+struct rrm_result
 {
   bool simple_flag : 1;
   bool another : 1;
@@ -51,7 +51,7 @@ struct tsh_result
   const char *value;
 };
 
-static struct tsh_result result;
+static struct rrm_result result;
 static wordexp_t wordexp_value;
 static char **argv;
 static int argc;
@@ -85,14 +85,14 @@ static int option_test_run(int argc, char *argv[])
 {
   int index;
   char identifier;
-  tsh_option_context context;
+  rrm_option_context context;
 
-  tsh_option_prepare(&context, options, TSH_ARRAY_SIZE(options), argc, argv);
+  rrm_option_prepare(&context, options, RRM_ARRAY_SIZE(options), argc, argv);
 
   memset(&result, 0, sizeof(result));
 
-  while (tsh_option_fetch(&context)) {
-    identifier = tsh_option_get(&context);
+  while (rrm_option_fetch(&context)) {
+    identifier = rrm_option_get(&context);
     switch (identifier) {
     case 's':
       result.simple_flag = true;
@@ -108,7 +108,7 @@ static int option_test_run(int argc, char *argv[])
       break;
     case 'k':
       result.value_parameter = true;
-      result.value = tsh_option_get_value(&context);
+      result.value = rrm_option_get_value(&context);
       break;
     case '?':
       result.unknown = true;
@@ -119,16 +119,16 @@ static int option_test_run(int argc, char *argv[])
     }
   }
 
-  index = tsh_option_get_index(&context);
-  if (tsh_option_fetch(&context) != false) {
+  index = rrm_option_get_index(&context);
+  if (rrm_option_fetch(&context) != false) {
     return -1;
   }
 
-  if (tsh_option_get_index(&context) != index) {
+  if (rrm_option_get_index(&context) != index) {
     return -1;
   }
 
-  return tsh_option_get_index(&context);
+  return rrm_option_get_index(&context);
 }
 
 int option_complex(void)
@@ -188,7 +188,7 @@ int option_mixed(void)
    * parameters
    * file4
    */
-  for (i = 0; i < TSH_ARRAY_SIZE(values); ++i) {
+  for (i = 0; i < RRM_ARRAY_SIZE(values); ++i) {
     for (j = status; j < argc; ++j) {
       if (strcmp(argv[j], values[i]) == 0) {
         goto found;
@@ -632,7 +632,7 @@ int option_print(void)
     goto err_open;
   }
 
-  tsh_option_print(options, TSH_ARRAY_SIZE(options), test_file);
+  rrm_option_print(options, RRM_ARRAY_SIZE(options), test_file);
   if (fseek(test_file, 0, SEEK_SET) != 0) {
     goto err_seek;
   }

@@ -16,14 +16,14 @@
  * well. This has to be initialized when the trash is created, and updated when
  * a dump is added or removed.
  */
-struct tsh_trash_state
+struct rrm_trash_state
 {
   int dump_count;
   int min_dump;
   int max_dump;
 };
 
-static char *tsh_trash_path_join(const char *a, const char *b)
+static char *rrm_trash_path_join(const char *a, const char *b)
 {
   size_t a_length, b_length;
   char *path;
@@ -64,9 +64,9 @@ static char *tsh_trash_path_join(const char *a, const char *b)
   return path;
 }
 
-static int tsh_trash_create_state(const char *state_path, bool fail_if_exists)
+static int rrm_trash_create_state(const char *state_path, bool fail_if_exists)
 {
-  struct tsh_trash_state state;
+  struct rrm_trash_state state;
   char *buf[255];
   int state_fd;
 
@@ -99,43 +99,43 @@ static int tsh_trash_create_state(const char *state_path, bool fail_if_exists)
   return state_fd;
 }
 
-tsh_status tsh_trash_create_internal(const char *path, bool fail_if_exists,
+rrm_status rrm_trash_create_internal(const char *path, bool fail_if_exists,
   int *lock_fd, int *state_fd)
 {
-  tsh_status status;
+  rrm_status status;
   char *lock_path, *state_path;
 
   if (mkdir(path, S_IRWXU) != 0) {
     if (errno != EEXIST) {
-      status = tsh_status_from_os(errno);
+      status = rrm_status_from_os(errno);
       goto err_mkdir;
     }
   }
 
-  lock_path = tsh_trash_path_join(path, TSH_LOCK_FILE_NAME);
+  lock_path = rrm_trash_path_join(path, RRM_LOCK_FILE_NAME);
   if (lock_path == NULL) {
-    status = TSH_SNOMEM;
+    status = RRM_SNOMEM;
     goto err_lock_path;
   }
 
   if ((*lock_fd = open(lock_path, O_WRONLY | O_CREAT)) != 0) {
-    status = tsh_status_from_os(errno);
+    status = rrm_status_from_os(errno);
     goto err_open_lock;
   }
 
   if (lockf(*lock_fd, F_LOCK, 0) != 0) {
-    status = tsh_status_from_os(errno);
+    status = rrm_status_from_os(errno);
     goto err_lock;
   }
 
-  state_path = tsh_trash_path_join(path, TSH_STATE_FILE_NAME);
+  state_path = rrm_trash_path_join(path, RRM_STATE_FILE_NAME);
   if (state_path == NULL) {
-    status = TSH_SNOMEM;
+    status = RRM_SNOMEM;
     goto err_state_path;
   }
 
-  if ((*state_fd = tsh_trash_create_state(state_path, fail_if_exists)) == -1) {
-    status = tsh_status_from_os(errno);
+  if ((*state_fd = rrm_trash_create_state(state_path, fail_if_exists)) == -1) {
+    status = rrm_status_from_os(errno);
     goto err_state;
   }
 
@@ -144,7 +144,7 @@ tsh_status tsh_trash_create_internal(const char *path, bool fail_if_exists,
   free(lock_path);
   free(state_path);
 
-  return TSH_SOK;
+  return RRM_SOK;
 
 err_state:
   free(state_path);
@@ -159,59 +159,59 @@ err_mkdir:
   return status;
 }
 
-tsh_status tsh_trash_create(const char *path)
+rrm_status rrm_trash_create(const char *path)
 {
-  tsh_status status;
+  rrm_status status;
   int lock_fd, state_fd;
 
-  status = tsh_trash_create_internal(path, true, &lock_fd, &state_fd);
-  if (tsh_status_is_error(status)) {
+  status = rrm_trash_create_internal(path, true, &lock_fd, &state_fd);
+  if (rrm_status_is_error(status)) {
     return status;
   }
 
   close(state_fd);
   close(lock_fd);
 
-  return TSH_SOK;
+  return RRM_SOK;
 }
 
-tsh_status tsh_trash_open(tsh_trash *trash, const char *path,
+rrm_status rrm_trash_open(rrm_trash *trash, const char *path,
   bool create_if_missing)
 {
-  tsh_status status;
+  rrm_status status;
   char *lock_path, *state_path;
 
   trash->path = path;
 
   if (create_if_missing) {
-    return tsh_trash_create_internal(path, false, &trash->lock_fd,
+    return rrm_trash_create_internal(path, false, &trash->lock_fd,
       &trash->state_fd);
   }
 
-  lock_path = tsh_trash_path_join(path, TSH_LOCK_FILE_NAME);
+  lock_path = rrm_trash_path_join(path, RRM_LOCK_FILE_NAME);
   if (lock_path == NULL) {
-    status = TSH_SNOMEM;
+    status = RRM_SNOMEM;
     goto err_lock_path;
   }
 
   if ((trash->lock_fd = open(lock_path, O_WRONLY)) == -1) {
-    status = tsh_status_from_os(errno);
+    status = rrm_status_from_os(errno);
     goto err_open_lock;
   }
 
   if (lockf(trash->lock_fd, F_LOCK, 0) != 0) {
-    status = tsh_status_from_os(errno);
+    status = rrm_status_from_os(errno);
     goto err_lock;
   }
 
-  state_path = tsh_trash_path_join(path, TSH_STATE_FILE_NAME);
+  state_path = rrm_trash_path_join(path, RRM_STATE_FILE_NAME);
   if (state_path == NULL) {
-    status = TSH_SNOMEM;
+    status = RRM_SNOMEM;
     goto err_state_path;
   }
 
   if ((trash->state_fd = open(state_path, O_WRONLY)) == -1) {
-    status = tsh_status_from_os(errno);
+    status = rrm_status_from_os(errno);
     goto err_open_state;
   }
 
@@ -219,7 +219,7 @@ tsh_status tsh_trash_open(tsh_trash *trash, const char *path,
   lockf(trash->lock_fd, F_ULOCK, 0);
   free(lock_path);
 
-  return TSH_SOK;
+  return RRM_SOK;
 
 err_open_state:
   free(state_path);
@@ -233,7 +233,7 @@ err_lock_path:
   return status;
 }
 
-void tsh_trash_close(tsh_trash *trash)
+void rrm_trash_close(rrm_trash *trash)
 {
   close(trash->lock_fd);
   close(trash->state_fd);

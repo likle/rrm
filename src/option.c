@@ -3,7 +3,7 @@
 #include <memory.h>
 #include <stdio.h>
 
-static void tsh_option_print_value(const tsh_option *option,
+static void rrm_option_print_value(const rrm_option *option,
   int *accessor_length, FILE *destination)
 {
   if (option->value_name != NULL) {
@@ -11,7 +11,7 @@ static void tsh_option_print_value(const tsh_option *option,
   }
 }
 
-static void tsh_option_print_letters(const tsh_option *option, bool *first,
+static void rrm_option_print_letters(const rrm_option *option, bool *first,
   int *accessor_length, FILE *destination)
 {
   const char *access_letter;
@@ -29,7 +29,7 @@ static void tsh_option_print_letters(const tsh_option *option, bool *first,
   }
 }
 
-static void tsh_option_print_name(const tsh_option *option, bool *first,
+static void rrm_option_print_name(const rrm_option *option, bool *first,
   int *accessor_length, FILE *destination)
 {
   if (option->access_name != NULL) {
@@ -41,11 +41,11 @@ static void tsh_option_print_name(const tsh_option *option, bool *first,
   }
 }
 
-void tsh_option_print(const tsh_option *options, size_t option_count,
+void rrm_option_print(const rrm_option *options, size_t option_count,
   FILE *destination)
 {
   size_t option_index;
-  const tsh_option *option;
+  const rrm_option *option;
   bool first;
   int i, accessor_length;
 
@@ -56,9 +56,9 @@ void tsh_option_print(const tsh_option *options, size_t option_count,
 
     fputs("  ", destination);
 
-    tsh_option_print_letters(option, &first, &accessor_length, destination);
-    tsh_option_print_name(option, &first, &accessor_length, destination);
-    tsh_option_print_value(option, &accessor_length, destination);
+    rrm_option_print_letters(option, &first, &accessor_length, destination);
+    rrm_option_print_name(option, &first, &accessor_length, destination);
+    rrm_option_print_value(option, &accessor_length, destination);
 
     for (i = accessor_length; i < 20; ++i) {
       fputs(" ", destination);
@@ -71,7 +71,7 @@ void tsh_option_print(const tsh_option *options, size_t option_count,
   }
 }
 
-void tsh_option_prepare(tsh_option_context *context, const tsh_option *options,
+void rrm_option_prepare(rrm_option_context *context, const rrm_option *options,
   size_t option_count, int argc, char **argv)
 {
   // This just initialized the values to the beginning of all the arguments.
@@ -84,10 +84,10 @@ void tsh_option_prepare(tsh_option_context *context, const tsh_option *options,
   context->forced_end = false;
 }
 
-static const tsh_option *tsh_option_find_by_name(tsh_option_context *context,
+static const rrm_option *rrm_option_find_by_name(rrm_option_context *context,
   char *name, size_t name_size)
 {
-  const tsh_option *option;
+  const rrm_option *option;
   size_t i;
 
   // We loop over all the available options and stop as soon as we have found
@@ -112,10 +112,10 @@ static const tsh_option *tsh_option_find_by_name(tsh_option_context *context,
   return NULL;
 }
 
-static const tsh_option *tsh_option_find_by_letter(tsh_option_context *context,
+static const rrm_option *rrm_option_find_by_letter(rrm_option_context *context,
   char letter)
 {
-  const tsh_option *option;
+  const rrm_option *option;
   size_t i;
 
   // We loop over all the available options and stop as soon as we have found
@@ -139,8 +139,8 @@ static const tsh_option *tsh_option_find_by_letter(tsh_option_context *context,
   return NULL;
 }
 
-static void tsh_option_parse_value(tsh_option_context *context,
-  const tsh_option *option, char **c)
+static void rrm_option_parse_value(rrm_option_context *context,
+  const rrm_option *option, char **c)
 {
   // And now let's check whether this option is supposed to have a value, which
   // is the case if there is a value name set. The value can be either submitted
@@ -172,9 +172,9 @@ static void tsh_option_parse_value(tsh_option_context *context,
   }
 }
 
-static void tsh_option_parse_access_name(tsh_option_context *context, char **c)
+static void rrm_option_parse_access_name(rrm_option_context *context, char **c)
 {
-  const tsh_option *option;
+  const rrm_option *option;
   char *n;
 
   // Now we need to extract the access name, which is any symbol up to a '=' or
@@ -194,7 +194,7 @@ static void tsh_option_parse_access_name(tsh_option_context *context, char **c)
   // have to skip the value parsing since we don't know whether the user thinks
   // this option has one or not. Since we don't set any identifier specifically,
   // it will remain '?' within the context.
-  option = tsh_option_find_by_name(context, n, (size_t)(*c - n));
+  option = rrm_option_find_by_name(context, n, (size_t)(*c - n));
   if (option == NULL) {
     // Since this option is invalid, we will move on to the next index. There is
     // nothing we can do about this.
@@ -208,16 +208,16 @@ static void tsh_option_parse_access_name(tsh_option_context *context, char **c)
 
   // And now we try to parse the value. This function will also check whether
   // this option is actually supposed to have a value.
-  tsh_option_parse_value(context, option, c);
+  rrm_option_parse_value(context, option, c);
 
   // And finally we move on to the next index.
   ++context->index;
 }
 
-static void tsh_option_parse_access_letter(tsh_option_context *context,
+static void rrm_option_parse_access_letter(rrm_option_context *context,
   char **c)
 {
-  const tsh_option *option;
+  const rrm_option *option;
   char *n = *c;
   char *v;
 
@@ -227,7 +227,7 @@ static void tsh_option_parse_access_letter(tsh_option_context *context,
   // option. We have to skip the value parsing since we don't know whether the
   // user thinks this option has one or not. Since we don't set any identifier
   // specifically, it will remain '?' within the context.
-  option = tsh_option_find_by_letter(context, n[context->inner_index]);
+  option = rrm_option_find_by_letter(context, n[context->inner_index]);
   if (option == NULL) {
     ++context->index;
     context->inner_index = 0;
@@ -241,7 +241,7 @@ static void tsh_option_parse_access_letter(tsh_option_context *context,
   // And now we try to parse the value. This function will also check whether
   // this option is actually supposed to have a value.
   v = &n[++context->inner_index];
-  tsh_option_parse_value(context, option, &v);
+  rrm_option_parse_value(context, option, &v);
 
   // Check whether we reached the end of this option argument.
   if (*v == '\0') {
@@ -250,7 +250,7 @@ static void tsh_option_parse_access_letter(tsh_option_context *context,
   }
 }
 
-static void tsh_option_swap(tsh_option_context *context, int index_a,
+static void rrm_option_swap(rrm_option_context *context, int index_a,
   int index_b)
 {
   char *tmp;
@@ -268,12 +268,12 @@ static void tsh_option_swap(tsh_option_context *context, int index_a,
   context->argv[index_b] = tmp;
 }
 
-static bool tsh_option_is_argument_string(const char *c)
+static bool rrm_option_is_argument_string(const char *c)
 {
   return *c == '-' && *(c + 1) != '\0';
 }
 
-static bool tsh_option_prepare_next(tsh_option_context *context)
+static bool rrm_option_prepare_next(rrm_option_context *context)
 {
   int next_index, next_option_index;
   char *c;
@@ -292,7 +292,7 @@ static bool tsh_option_prepare_next(tsh_option_context *context)
   // Check whether it is a '-'. We need to find the next option - and an option
   // always starts with a '-'. If there is a string "-\0", we don't consider it
   // as an option neither.
-  while (!tsh_option_is_argument_string(c)) {
+  while (!rrm_option_is_argument_string(c)) {
     // Find next option and swap.
     c = context->argv[++next_option_index];
     if (c == NULL) {
@@ -304,7 +304,7 @@ static bool tsh_option_prepare_next(tsh_option_context *context)
 
   // We found the next item, let's swap them around and set the context index
   // to the new index.
-  tsh_option_swap(context, next_index, next_option_index);
+  rrm_option_swap(context, next_index, next_option_index);
   context->index = next_index;
 
   // Indicate that we found an option which can be processed. The option is
@@ -312,7 +312,7 @@ static bool tsh_option_prepare_next(tsh_option_context *context)
   return true;
 }
 
-bool tsh_option_fetch(tsh_option_context *context)
+bool rrm_option_fetch(rrm_option_context *context)
 {
   char *c;
 
@@ -323,7 +323,7 @@ bool tsh_option_fetch(tsh_option_context *context)
   context->value = NULL;
 
   // Check whether there are any options left to parse
-  if (!tsh_option_prepare_next(context)) {
+  if (!rrm_option_prepare_next(context)) {
     return false;
   }
 
@@ -349,30 +349,30 @@ bool tsh_option_fetch(tsh_option_context *context)
 
     // We parse now the access name. All information about it will be written
     // to the context.
-    tsh_option_parse_access_name(context, &c);
+    rrm_option_parse_access_name(context, &c);
 
     // The long argument has been parsed. Indicate that to the caller, so he
     // can process the option.
     return true;
   }
 
-  tsh_option_parse_access_letter(context, &c);
+  rrm_option_parse_access_letter(context, &c);
   return true;
 }
 
-char tsh_option_get(const tsh_option_context *context)
+char rrm_option_get(const rrm_option_context *context)
 {
   // We just return the identifier here.
   return context->identifier;
 }
 
-const char *tsh_option_get_value(const tsh_option_context *context)
+const char *rrm_option_get_value(const rrm_option_context *context)
 {
   // We just return the internal value pointer of the context.
   return context->value;
 }
 
-int tsh_option_get_index(const tsh_option_context *context)
+int rrm_option_get_index(const rrm_option_context *context)
 {
   // Either we point to a value item,
   return context->index;

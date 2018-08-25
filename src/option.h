@@ -6,8 +6,8 @@
  * which are received in the main function).
  */
 
-#ifndef TSH_OPTION_H
-#define TSH_OPTION_H
+#ifndef RRM_OPTION_H
+#define RRM_OPTION_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -17,22 +17,22 @@
  * An option is used to describe a flag/argument option submitted when the
  * program is run.
  */
-typedef struct tsh_option
+typedef struct rrm_option
 {
   const char identifier;
   const char *access_letters;
   const char *access_name;
   const char *value_name;
   const char *description;
-} tsh_option;
+} rrm_option;
 
 /**
  * A context is used to iterate over all options provided. It stores the parsing
  * state.
  */
-typedef struct tsh_option_context
+typedef struct rrm_option_context
 {
-  const struct tsh_option *options;
+  const struct rrm_option *options;
   size_t option_count;
   int argc;
   char **argv;
@@ -41,7 +41,7 @@ typedef struct tsh_option_context
   bool forced_end;
   char identifier;
   char *value;
-} tsh_option_context;
+} rrm_option_context;
 
 /**
  * @brief Prints all options to the terminal.
@@ -53,7 +53,7 @@ typedef struct tsh_option_context
  * @param option_count The option count which will be printed.
  * @param destination The destination where the output will be printed.
  */
-void tsh_option_print(const tsh_option *options, size_t option_count,
+void rrm_option_print(const rrm_option *options, size_t option_count,
   FILE *destination);
 
 /**
@@ -70,7 +70,7 @@ void tsh_option_print(const tsh_option *options, size_t option_count,
  * @param argc The amount of arguments the user supplied in the main function.
  * @param argv A pointer to the arguments of the main function.
  */
-void tsh_option_prepare(tsh_option_context *context, const tsh_option *options,
+void rrm_option_prepare(rrm_option_context *context, const rrm_option *options,
   size_t option_count, int argc, char **argv);
 
 /**
@@ -88,7 +88,7 @@ void tsh_option_prepare(tsh_option_context *context, const tsh_option *options,
  * @return Returns true if there was another option or false if the end is
  * reached.
  */
-bool tsh_option_fetch(tsh_option_context *context);
+bool rrm_option_fetch(rrm_option_context *context);
 
 /**
  * @brief Gets the identifier of the option.
@@ -99,7 +99,7 @@ bool tsh_option_fetch(tsh_option_context *context);
  * @param context The context from which the option was fetched.
  * @return Returns the identifier of the option.
  */
-char tsh_option_get(const tsh_option_context *context);
+char rrm_option_get(const rrm_option_context *context);
 
 /**
  * @brief Gets the value from the option.
@@ -110,7 +110,7 @@ char tsh_option_get(const tsh_option_context *context);
  * @param context The context from which the option was fetched.
  * @return Returns a pointer to the value or NULL if there is no value.
  */
-const char *tsh_option_get_value(const tsh_option_context *context);
+const char *rrm_option_get_value(const rrm_option_context *context);
 
 /**
  * @brief Gets the current index of the context.
@@ -123,6 +123,6 @@ const char *tsh_option_get_value(const tsh_option_context *context);
  * @param context The context from which the option was fetched.
  * @return Returns the current index of the context.
  */
-int tsh_option_get_index(const tsh_option_context *context);
+int rrm_option_get_index(const rrm_option_context *context);
 
 #endif

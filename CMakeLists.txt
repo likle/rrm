@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.9.2)
 
 # set project name
-project(tsh
+project(rrm
   VERSION 0.1.0
   DESCRIPTION "A soft-delete replacement for rm"
   LANGUAGES C)
@@ -16,8 +16,8 @@ include(CreateTestList)
 set(CMAKE_C_STANDARD 11)
 
 # setup target and directory names
-set(TRASH_TARGET "tsh")
-set(TEST_TARGET "tshtest")
+set(TRASH_TARGET "rrm")
+set(TEST_TARGET "rrmtest")
 set(SOURCE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(TEST_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test")
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#ifndef TSH_STATUS_H
-#define TSH_STATUS_H
+#ifndef RRM_STATUS_H
+#define RRM_STATUS_H
 
-#define TSH_STATUS_MAP(XX)                                                     \
+#define RRM_STATUS_MAP(XX)                                                     \
   XX(LOOP, true, "Symbolic link loop")                                         \
   XX(MLINK, true, "Too many links")                                            \
   XX(NOACS, true, "Access is denied")                                          \
@@ -20,15 +20,15 @@
 
 typedef enum
 {
-#define XX(n, e, m) TSH_S##n,
-  TSH_STATUS_MAP(XX)
+#define XX(n, e, m) RRM_S##n,
+  RRM_STATUS_MAP(XX)
 #undef XX
-} tsh_status;
+} rrm_status;
 
-bool tsh_status_is_error(tsh_status status);
+bool rrm_status_is_error(rrm_status status);
 
-const char *tsh_status_get_string(tsh_status status);
+const char *rrm_status_get_string(rrm_status status);
 
-tsh_status tsh_status_from_os(int err);
+rrm_status rrm_status_from_os(int err);
 
 #endif
