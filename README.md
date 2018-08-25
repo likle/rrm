@@ -1,19 +1,20 @@
-[![build status](https://travis-ci.org/likle/tsh.svg?branch=master)](https://travis-ci.org/likle/tsh) 
-[![codecov](https://codecov.io/gh/likle/tsh/branch/master/graph/badge.svg)](https://codecov.io/gh/likle/tsh)
+[![build status](https://travis-ci.org/likle/rrm.svg?branch=master)](https://travis-ci.org/likle/rrm) 
+[![codecov](https://codecov.io/gh/likle/rrm/branch/master/graph/badge.svg)](https://codecov.io/gh/likle/rrm)
 ![status](https://img.shields.io/badge/status-not_released-red.svg?longCache=true&style=flat)
 
-# tsh - trash utility
-The ``tsh`` utility is a simple tool which can be used as a replacement for rm.
-While rm permanently deletes all files, ``tsh`` will just move them it to a trash.
+# rrm - trash utility
+The ``rrm`` (**r**ecoverable **r**e**m**ove) utility is a simple tool which can be 
+used as a replacement for rm. While rm permanently deletes all files, ``rrm`` 
+will just move them it to a trash.
     
 ## WARNING
 This is a work in progress and not yet ready to use.
 
 ## Usage
 ```
-Usage: tsh [OPTION]... [FILE]...
-   or: tsh [OPTION]... -l
-   or: tsh [OPTION]... -u [DUMP]...
+Usage: rrm [OPTION]... [FILE]...
+   or: rrm [OPTION]... -l
+   or: rrm [OPTION]... -u [DUMP]...
 Moves files to the trash, recovers or lists dumps.
 
   -f, --force          ignore non-existent files and arguments, never prompt
