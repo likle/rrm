@@ -45,11 +45,11 @@ static rrm_status rrm_dump_create_internal(const char *path,
   lock_path = rrm_path_join(path, RRM_LOCK_FILE_NAME);
   info_path = rrm_path_join(path, RRM_INFO_FILE_NAME);
 
-  *lock_fd = open(lock_path, O_WRONLY | O_CREAT, 666);
+  *lock_fd = open(lock_path, O_RDWR | O_CREAT, 666);
 
   lockf(*lock_fd, F_LOCK, 0);
 
-  *info_fd = open(info_path, O_WRONLY | O_CREAT, 666);
+  *info_fd = open(info_path, O_RDWR | O_CREAT, 666);
   info.prev_dump_id = 0;
   info.next_dump_id = 0;
   info.active = true;
@@ -96,17 +96,10 @@ rrm_status rrm_dump_open(rrm_dump *dump, struct rrm_trash *trash, int dump_id,
 
   dump->dump_id = dump_id;
 
-  dump->lock_fd = open(lock_path, O_WRONLY);
+  dump->lock_fd = open(lock_path, O_RDWR);
   lockf(dump->lock_fd, F_LOCK, 0);
 
-  dump->info_fd = open(info_path, O_WRONLY);
-
-  return RRM_SOK;
-}
-
-rrm_status rrm_dump_configure(rrm_dump *dump, struct rrm_dump_info info)
-{
-  pwrite(dump->info_fd, &info, sizeof(info), 0);
+  dump->info_fd = open(info_path, O_RDWR);
 
   return RRM_SOK;
 }

@@ -22,17 +22,13 @@ struct rrm_trash_info
 {
   int dump_count;
   int free_dump;
+  int first_dump;
   int last_dump;
 };
 
 static int rrm_trash_write_info(int info_fd, struct rrm_trash_info *info)
 {
-  char *buf[255];
-
-  memset(&buf, 0, sizeof(buf));
-  memcpy(buf, &info, sizeof(info));
-
-  if (pwrite(info_fd, buf, sizeof(buf), 0) != sizeof(buf)) {
+  if (pwrite(info_fd, info, sizeof(*info), 0) != sizeof(*info)) {
     return -1;
   }
 
@@ -41,12 +37,8 @@ static int rrm_trash_write_info(int info_fd, struct rrm_trash_info *info)
 
 static int rrm_trash_read_info(int info_fd, struct rrm_trash_info *info)
 {
-  char *buf[255];
-
-  memset(&buf, 0, sizeof(buf));
-  memcpy(buf, &info, sizeof(info));
-
-  if (pread(info_fd, buf, sizeof(buf), 0) != sizeof(buf)) {
+  if (pread(info_fd, info, sizeof(*info), 0) != sizeof(*info)) {
+    printf("%i, %s", errno, strerror(errno));
     return -1;
   }
 
@@ -58,10 +50,10 @@ static int rrm_trash_create_info(const char *info_path, bool fail_if_exists)
   struct rrm_trash_info info;
   int info_fd;
 
-  info_fd = open(info_path, O_WRONLY | O_EXCL | O_CREAT, 666);
+  info_fd = open(info_path, O_RDWR | O_EXCL | O_CREAT, 666);
   if (info_fd < 0) {
     if (errno == EEXIST && !fail_if_exists) {
-      info_fd = open(info_path, O_WRONLY);
+      info_fd = open(info_path, O_RDWR);
       if (info_fd != 0) {
         return info_fd;
       }
@@ -74,6 +66,7 @@ static int rrm_trash_create_info(const char *info_path, bool fail_if_exists)
 
   info.dump_count = 0;
   info.free_dump = 0;
+  info.first_dump = 0;
   info.last_dump = 0;
 
   if (rrm_trash_write_info(info_fd, &info) < 0) {
@@ -103,7 +96,7 @@ rrm_status rrm_trash_create_internal(const char *path, bool fail_if_exists,
     goto err_lock_path;
   }
 
-  if ((*lock_fd = open(lock_path, O_WRONLY | O_CREAT, 666)) < 0) {
+  if ((*lock_fd = open(lock_path, O_RDWR | O_CREAT, 666)) < 0) {
     status = rrm_status_from_os(errno);
     goto err_open_lock;
   }
@@ -179,7 +172,7 @@ rrm_status rrm_trash_open(rrm_trash *trash, const char *path,
     goto err_lock_path;
   }
 
-  if ((trash->lock_fd = open(lock_path, O_WRONLY)) < 0) {
+  if ((trash->lock_fd = open(lock_path, O_RDWR)) < 0) {
     status = rrm_status_from_os(errno);
     goto err_open_lock;
   }
@@ -195,7 +188,7 @@ rrm_status rrm_trash_open(rrm_trash *trash, const char *path,
     goto err_info_path;
   }
 
-  if ((trash->info_fd = open(info_path, O_WRONLY)) < 0) {
+  if ((trash->info_fd = open(info_path, O_RDWR)) < 0) {
     status = rrm_status_from_os(errno);
     goto err_open_info;
   }
@@ -223,30 +216,57 @@ const char *rrm_trash_get_path(rrm_trash *trash)
   return trash->path;
 }
 
-rrm_status rrm_trash_insert(rrm_trash *trash, rrm_dump *dump)
+static rrm_status rrm_trash_insert_at_end(rrm_trash *trash, int last_dump_id,
+  int dump_id, rrm_dump *dump)
+{
+  rrm_dump last_dump;
+  rrm_dump_open(&last_dump, trash, last_dump_id, false);
+  rrm_dump_open(dump, trash, dump_id, true);
+  rrm_dump_move_after(&last_dump, dump);
+  rrm_dump_close(&last_dump);
+
+  return RRM_SOK;
+}
+
+static rrm_status rrm_trash_allocate_dump_id(rrm_trash *trash, int *dump_id,
+  int *last_dump_id)
 {
   struct rrm_trash_info info;
-  int dump_id, last_dump_id;
-  rrm_dump last_dump;
 
   lockf(trash->lock_fd, F_LOCK, 0);
   rrm_trash_read_info(trash->info_fd, &info);
-  last_dump_id = info.last_dump;
-  info.last_dump = dump_id = info.dump_count++;
+  *last_dump_id = info.last_dump;
+  info.last_dump = *dump_id = ++info.dump_count;
   rrm_trash_write_info(trash->info_fd, &info);
   lockf(trash->lock_fd, F_ULOCK, 0);
+  return RRM_SOK;
+}
 
-  // TODO open previous to update.
-  if (last_dump_id != 0) {
-    rrm_dump_open(&last_dump, trash, last_dump_id, false);
-    rrm_dump_open(dump, trash, dump_id, true);
-    rrm_dump_move_after(&last_dump, dump);
-    rrm_dump_close(&last_dump);
-  } else {
-    rrm_dump_open(dump, trash, dump_id, true);
+rrm_status rrm_trash_insert(rrm_trash *trash, rrm_dump *dump)
+{
+  rrm_status status;
+  int dump_id, last_dump_id;
+
+  status = rrm_trash_allocate_dump_id(trash, &dump_id, &last_dump_id);
+  if (rrm_status_is_error(status)) {
+    goto err_allocate_dump_id;
   }
 
-  return RRM_SOK;
+  if (last_dump_id != 0) {
+    status = rrm_trash_insert_at_end(trash, last_dump_id, dump_id, dump);
+    if (rrm_status_is_error(status)) {
+      goto err_insert_at_end;
+    }
+
+    return RRM_SOK;
+  }
+
+  return rrm_dump_open(dump, trash, dump_id, true);
+
+err_insert_at_end:
+  // TODO undo dump id allocation
+err_allocate_dump_id:
+  return status;
 }
 
 void rrm_trash_close(rrm_trash *trash)
