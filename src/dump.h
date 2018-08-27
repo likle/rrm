@@ -5,6 +5,7 @@
 
 #include "status.h"
 #include <stdbool.h>
+#include <time.h>
 
 /**
  * We have to forward declare the trash, otherwise we would have a circular
@@ -87,6 +88,18 @@ rrm_status rrm_dump_next(rrm_dump *dump);
  * @return Returns RRM_SOK on success or an error otherwise.
  */
 rrm_status rrm_dump_previous(rrm_dump *dump);
+
+/**
+ * @brief Gets the time when a dump was created.
+ *
+ * This function extracts the time of a dump, which determines when this
+ * specific dump was allocated.
+ *
+ * @param dump The dump which will be inspected.
+ * @return Returns a time_t value which corresponds to the time when the dump
+ * was created.
+ */
+time_t rrm_dump_get_time(rrm_dump *dump);
 
 /**
  * @brief Closes the dump.

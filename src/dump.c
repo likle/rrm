@@ -9,7 +9,6 @@
 #include <string.h>
 #include <sys/fcntl.h>
 #include <sys/stat.h>
-#include <time.h>
 #include <unistd.h>
 
 struct rrm_dump_info
@@ -179,6 +178,17 @@ rrm_status rrm_dump_previous(rrm_dump *dump)
   *dump = prev;
 
   return RRM_SOK;
+}
+
+time_t rrm_dump_get_time(rrm_dump *dump)
+{
+  struct rrm_dump_info info;
+
+  if (pread(dump->info_fd, &info, sizeof(info), 0) != sizeof(info)) {
+    return rrm_status_from_os(errno);
+  }
+
+  return info.time;
 }
 
 void rrm_dump_close(rrm_dump *dump)
