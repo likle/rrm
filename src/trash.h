@@ -66,10 +66,43 @@ rrm_status rrm_trash_open(rrm_trash *trash, const char *path,
  */
 const char *rrm_trash_get_path(rrm_trash *trash);
 
+/**
+ * @brief Inserts a new dump.
+ *
+ * This function inserts a new dump at the end of the dump chain. The new dump
+ * will be written out through the dump parameter and has to be closed using
+ * rrm_dump_close.
+ *
+ * @param trash The trash which will own the new dump.
+ * @param dump The output of the new dump.
+ * @return Returns RRM_SOK on success or an error otherwise.
+ */
 rrm_status rrm_trash_insert(rrm_trash *trash, rrm_dump *dump);
 
+/**
+ * @brief Opens the first dump of the trash.
+ *
+ * This function opens the first dump available in the trash. The dump will be
+ * written out through the dump parameter and has to be closed with
+ * rrm_trash_close.
+ *
+ * @param trash The trash which will be inspected.
+ * @param dump The dump which will be opened.
+ * @return Returns RRM_SOK on success or an error otherwise.
+ */
 rrm_status rrm_trash_begin(rrm_trash *trash, rrm_dump *dump);
 
+/**
+ * @brief Opens the last dump of the trash.
+ *
+ * This function opens the last dump available in the trash.The dump will be
+ * written out through the dump parameter and has to be closed with
+ * rrm_trash_close.
+ *
+ * @param trash The trash which will be inspected.
+ * @param dump The dump which will be opened.
+ * @return Returns RRM_SOK on success or an error otherwise.
+ */
 rrm_status rrm_trash_end(rrm_trash *trash, rrm_dump *dump);
 
 /**

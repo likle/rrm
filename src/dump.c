@@ -9,6 +9,7 @@
 #include <string.h>
 #include <sys/fcntl.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 
 struct rrm_dump_info
@@ -16,6 +17,7 @@ struct rrm_dump_info
   int next_dump_id;
   int prev_dump_id;
   bool active;
+  time_t time;
 };
 
 static char *rrm_dump_create_path(rrm_trash *trash, int dump_id)
@@ -45,14 +47,16 @@ static rrm_status rrm_dump_create_internal(const char *path,
   lock_path = rrm_path_join(path, RRM_LOCK_FILE_NAME);
   info_path = rrm_path_join(path, RRM_INFO_FILE_NAME);
 
-  *lock_fd = open(lock_path, O_RDWR | O_CREAT, 666);
+  *lock_fd = open(lock_path, O_RDWR | O_CREAT, 0666);
 
   lockf(*lock_fd, F_LOCK, 0);
 
-  *info_fd = open(info_path, O_RDWR | O_CREAT, 666);
+  *info_fd = open(info_path, O_RDWR | O_CREAT, 0666);
   info.prev_dump_id = 0;
   info.next_dump_id = 0;
   info.active = true;
+  info.time = time(NULL);
+
   pwrite(*info_fd, &info, sizeof(info), 0);
 
   free(info_path);
@@ -85,7 +89,9 @@ rrm_status rrm_dump_open(rrm_dump *dump, struct rrm_trash *trash, int dump_id,
 {
   char *lock_path, *info_path;
 
+  dump->trash = trash;
   dump->path = rrm_dump_create_path(trash, dump_id);
+  dump->dump_id = dump_id;
   if (create_if_missing) {
     return rrm_dump_create_internal(dump->path, false, &dump->lock_fd,
       &dump->info_fd);
@@ -93,8 +99,6 @@ rrm_status rrm_dump_open(rrm_dump *dump, struct rrm_trash *trash, int dump_id,
 
   lock_path = rrm_path_join(dump->path, RRM_LOCK_FILE_NAME);
   info_path = rrm_path_join(dump->path, RRM_INFO_FILE_NAME);
-
-  dump->dump_id = dump_id;
 
   dump->lock_fd = open(lock_path, O_RDWR);
   lockf(dump->lock_fd, F_LOCK, 0);
@@ -117,7 +121,7 @@ rrm_status rrm_dump_move_after(rrm_dump *dump, rrm_dump *new_dump)
   new_info.prev_dump_id = dump->dump_id;
 
   pwrite(dump->info_fd, &info, sizeof(info), 0);
-  pwrite(dump->info_fd, &new_info, sizeof(new_info), 0);
+  pwrite(new_dump->info_fd, &new_info, sizeof(new_info), 0);
 
   return RRM_SOK;
 }

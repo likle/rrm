@@ -38,7 +38,6 @@ static int rrm_trash_write_info(int info_fd, struct rrm_trash_info *info)
 static int rrm_trash_read_info(int info_fd, struct rrm_trash_info *info)
 {
   if (pread(info_fd, info, sizeof(*info), 0) != sizeof(*info)) {
-    printf("%i, %s", errno, strerror(errno));
     return -1;
   }
 
@@ -237,6 +236,10 @@ static rrm_status rrm_trash_allocate_dump_id(rrm_trash *trash, int *dump_id,
   rrm_trash_read_info(trash->info_fd, &info);
   *last_dump_id = info.last_dump;
   info.last_dump = *dump_id = ++info.dump_count;
+  if (info.first_dump == 0) {
+    info.first_dump = info.last_dump;
+  }
+
   rrm_trash_write_info(trash->info_fd, &info);
   lockf(trash->lock_fd, F_ULOCK, 0);
   return RRM_SOK;
@@ -267,6 +270,28 @@ err_insert_at_end:
   // TODO undo dump id allocation
 err_allocate_dump_id:
   return status;
+}
+
+rrm_status rrm_trash_begin(rrm_trash *trash, rrm_dump *dump)
+{
+  struct rrm_trash_info info;
+  lockf(trash->lock_fd, F_LOCK, 0);
+  pread(trash->info_fd, &info, sizeof(info), 0);
+  rrm_dump_open(dump, trash, info.first_dump, false);
+  lockf(trash->lock_fd, F_ULOCK, 0);
+
+  return RRM_SOK;
+}
+
+rrm_status rrm_trash_end(rrm_trash *trash, rrm_dump *dump)
+{
+  struct rrm_trash_info info;
+  lockf(trash->lock_fd, F_LOCK, 0);
+  pread(trash->info_fd, &info, sizeof(info), 0);
+  rrm_dump_open(dump, trash, info.last_dump, false);
+  lockf(trash->lock_fd, F_ULOCK, 0);
+
+  return RRM_SOK;
 }
 
 void rrm_trash_close(rrm_trash *trash)

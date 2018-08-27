@@ -112,11 +112,32 @@ int trash_insert()
   }
 
   rrm_dump_close(&dump);
+
+  status = rrm_trash_begin(&trash, &dump);
+  if(status != RRM_SOK) {
+    goto err_begin;
+  }
+
+  status = rrm_dump_next(&dump);
+  if(status != RRM_SOK) {
+    goto err_next;
+  }
+
+  status = rrm_dump_next(&dump);
+  if(status != RRM_SEND) {
+    goto err_next;
+  }
+
+  rrm_dump_close(&dump);
+
   rrm_trash_close(&trash);
   clear();
 
   return EXIT_SUCCESS;
 
+err_next:
+  rrm_dump_close(&dump);
+err_begin:
 err_insert:
   rrm_trash_close(&trash);
 err_open:
