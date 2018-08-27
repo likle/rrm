@@ -223,22 +223,28 @@ const char *rrm_trash_get_path(rrm_trash *trash)
   return trash->path;
 }
 
-rrm_status rrm_trash_insert(rrm_trash *trash, int *dump_id)
+rrm_status rrm_trash_insert(rrm_trash *trash, rrm_dump *dump)
 {
   struct rrm_trash_info info;
-  int last_dump;
-  rrm_dump dump;
+  int dump_id, last_dump_id;
+  rrm_dump last_dump;
 
   lockf(trash->lock_fd, F_LOCK, 0);
   rrm_trash_read_info(trash->info_fd, &info);
-  last_dump = info.last_dump;
-  info.last_dump = *dump_id = info.dump_count++;
+  last_dump_id = info.last_dump;
+  info.last_dump = dump_id = info.dump_count++;
   rrm_trash_write_info(trash->info_fd, &info);
   lockf(trash->lock_fd, F_ULOCK, 0);
 
   // TODO open previous to update.
-  rrm_dump_open(&dump, trash, *dump_id, true);
-  rrm_dump_configure(&dump, 0, last_dump, true);
+  if (last_dump_id != 0) {
+    rrm_dump_open(&last_dump, trash, last_dump_id, false);
+    rrm_dump_open(dump, trash, dump_id, true);
+    rrm_dump_move_after(&last_dump, dump);
+    rrm_dump_close(&last_dump);
+  } else {
+    rrm_dump_open(dump, trash, dump_id, true);
+  }
 
   return RRM_SOK;
 }

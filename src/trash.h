@@ -3,6 +3,7 @@
 #ifndef RRM_TRASH_H
 #define RRM_TRASH_H
 
+#include "dump.h"
 #include "status.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -65,23 +66,17 @@ rrm_status rrm_trash_open(rrm_trash *trash, const char *path,
  */
 const char *rrm_trash_get_path(rrm_trash *trash);
 
-rrm_status rrm_trash_insert(rrm_trash *trash, int *dump_id);
+rrm_status rrm_trash_insert(rrm_trash *trash, rrm_dump *dump);
 
-rrm_status rrm_trash_begin(rrm_trash *trash, rrm_trash_iterator *it);
+rrm_status rrm_trash_begin(rrm_trash *trash, rrm_dump *dump);
 
-rrm_status rrm_trash_next(rrm_trash_iterator *it);
-
-rrm_status rrm_trash_previous(rrm_trash_iterator *it);
-
-rrm_status rrm_trash_delete(rrm_trash_iterator *it);
-
-rrm_status rrm_trash_close_iterator(rrm_trash_iterator *it);
+rrm_status rrm_trash_end(rrm_trash *trash, rrm_dump *dump);
 
 /**
  * @brief Closes a trash.
  *
  * This function disposes all resources required by a trash object. The trash
- * object must be initialize using rrm_tash_open before calling this function.
+ * object must be initialized with rrm_tash_open before calling this function.
  *
  * @param trash The trash object which will be released.
  */

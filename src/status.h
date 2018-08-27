@@ -12,8 +12,9 @@
   XX(NOMEM, true, "Out of memory")                                             \
   XX(NOSPC, true, "Insufficient space")                                        \
   XX(NTLNG, true, "Name too long")                                             \
+  XX(END, false, "End reached")                                                \
   XX(OK, false, "Everything is ok")                                            \
-  XX(AEXST, true, "Already exists")                                           \
+  XX(AEXST, true, "Already exists")                                            \
   XX(ROFS, true, "Read-only file system")                                      \
   XX(UNKWN, true, "Unknown error")
 

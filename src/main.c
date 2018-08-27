@@ -71,30 +71,6 @@ static struct rrm_option options[] = {
     .description = "output version info and exit"}
 
 };
-/*
-int run(char **files)
-{
-  int bitflags;
-  FTSENT *ent;
-  FTS *fts;
-
-  bitflags = (FTS_NOSTAT | FTS_PHYSICAL);
-  fts = fts_open(files, bitflags, NULL);
-  while (1) {
-    ent = fts_read(fts);
-    if (ent == NULL) {
-      break;
-    }
-
-    if (ent->fts_info == FTS_D) {
-      printf("ND%.*s\n", ent->fts_namelen, ent->fts_name);
-    } else {
-      printf("D%.*s\n", ent->fts_namelen, ent->fts_name);
-    }
-  }
-  // Indicate that the operation was successful.
-  return EXIT_SUCCESS;
-}*/
 
 static void print_help(void)
 {
