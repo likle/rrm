@@ -38,6 +38,8 @@ add_executable(${TRASH_TARGET}
   "${SOURCE_DIRECTORY}/main.c"
   "${SOURCE_DIRECTORY}/option.c"
   "${SOURCE_DIRECTORY}/option.h"
+  "${SOURCE_DIRECTORY}/path.c"
+  "${SOURCE_DIRECTORY}/path.h"
   "${SOURCE_DIRECTORY}/status.c"
   "${SOURCE_DIRECTORY}/status.h"
   "${SOURCE_DIRECTORY}/trash.c"
@@ -73,6 +75,8 @@ add_executable(${TEST_TARGET}
   "${SOURCE_DIRECTORY}/status.c"
   "${SOURCE_DIRECTORY}/option.c"
   "${SOURCE_DIRECTORY}/trash.c"
+  "${SOURCE_DIRECTORY}/path.c"
+  "${SOURCE_DIRECTORY}/dump.c"
   "${TEST_DIRECTORY}/option_test.c"
   "${TEST_DIRECTORY}/trash_test.c")
 target_include_directories(${TEST_TARGET} PRIVATE "${SOURCE_DIRECTORY}")

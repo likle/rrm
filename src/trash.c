@@ -1,5 +1,7 @@
 #include "trash.h"
 #include "constants.h"
+#include "dump.h"
+#include "path.h"
 #include "status.h"
 #include <assert.h>
 #include <errno.h>
@@ -19,55 +21,41 @@
 struct rrm_trash_info
 {
   int dump_count;
-  int min_dump;
-  int max_dump;
+  int free_dump;
+  int last_dump;
 };
 
-static char *rrm_trash_path_join(const char *a, const char *b)
+static int rrm_trash_write_info(int info_fd, struct rrm_trash_info *info)
 {
-  size_t a_length, b_length;
-  char *path;
+  char *buf[255];
 
-  // First we determine the length of the two pieces which we will combine.
-  // That's as simple as calling strlen.
-  a_length = strlen(a);
-  b_length = strlen(b);
+  memset(&buf, 0, sizeof(buf));
+  memcpy(buf, &info, sizeof(info));
 
-  // Now we allocate the memory which we require to generate the new path.
-  // Theoretically it would be possible to do that on the stack, but those paths
-  // could be rather long. So, the length of this memory block will be the two
-  // string lengths plus 2 characters (a '\0' and possibly a '/' between the two
-  // strings).
-  path = malloc(a_length + b_length + 2);
-  if (path == NULL) {
-    return NULL;
+  if (pwrite(info_fd, buf, sizeof(buf), 0) != sizeof(buf)) {
+    return -1;
   }
 
-  // We copy the first path to the newly allocated block.
-  memcpy(path, a, a_length);
+  return 0;
+}
 
-  // Check whether the last symbol of the string is a '/', if not, we will
-  // append one.
-  if (path[a_length - 1] != '/') {
-    path[a_length] = '/';
-    ++a_length;
+static int rrm_trash_read_info(int info_fd, struct rrm_trash_info *info)
+{
+  char *buf[255];
+
+  memset(&buf, 0, sizeof(buf));
+  memcpy(buf, &info, sizeof(info));
+
+  if (pread(info_fd, buf, sizeof(buf), 0) != sizeof(buf)) {
+    return -1;
   }
 
-  // And now we copy the second string to our new path.
-  memcpy(path + a_length, b, b_length);
-
-  // Finally, append a '\0' to the end of the path.
-  path[a_length + b_length] = '\0';
-
-  // Return the pointer to the caller. This will have to be disposed by the
-  // caller though.
-  return path;
+  return 0;
 }
 
 static int rrm_trash_create_info(const char *info_path, bool fail_if_exists)
 {
   struct rrm_trash_info info;
-  char *buf[255];
   int info_fd;
 
   info_fd = open(info_path, O_WRONLY | O_EXCL | O_CREAT, 666);
@@ -85,13 +73,10 @@ static int rrm_trash_create_info(const char *info_path, bool fail_if_exists)
   }
 
   info.dump_count = 0;
-  info.min_dump = 0;
-  info.max_dump = 0;
+  info.free_dump = 0;
+  info.last_dump = 0;
 
-  memset(&buf, 0, sizeof(buf));
-  memcpy(buf, &info, sizeof(info));
-
-  if (pwrite(info_fd, buf, sizeof(buf), 0) != sizeof(buf)) {
+  if (rrm_trash_write_info(info_fd, &info) < 0) {
     close(info_fd);
     return -1;
   }
@@ -112,7 +97,7 @@ rrm_status rrm_trash_create_internal(const char *path, bool fail_if_exists,
     }
   }
 
-  lock_path = rrm_trash_path_join(path, RRM_LOCK_FILE_NAME);
+  lock_path = rrm_path_join(path, RRM_LOCK_FILE_NAME);
   if (lock_path == NULL) {
     status = RRM_SNOMEM;
     goto err_lock_path;
@@ -128,7 +113,7 @@ rrm_status rrm_trash_create_internal(const char *path, bool fail_if_exists,
     goto err_lock;
   }
 
-  info_path = rrm_trash_path_join(path, RRM_INFO_FILE_NAME);
+  info_path = rrm_path_join(path, RRM_INFO_FILE_NAME);
   if (info_path == NULL) {
     status = RRM_SNOMEM;
     goto err_info_path;
@@ -188,7 +173,7 @@ rrm_status rrm_trash_open(rrm_trash *trash, const char *path,
       &trash->info_fd);
   }
 
-  lock_path = rrm_trash_path_join(path, RRM_LOCK_FILE_NAME);
+  lock_path = rrm_path_join(path, RRM_LOCK_FILE_NAME);
   if (lock_path == NULL) {
     status = RRM_SNOMEM;
     goto err_lock_path;
@@ -204,7 +189,7 @@ rrm_status rrm_trash_open(rrm_trash *trash, const char *path,
     goto err_lock;
   }
 
-  info_path = rrm_trash_path_join(path, RRM_INFO_FILE_NAME);
+  info_path = rrm_path_join(path, RRM_INFO_FILE_NAME);
   if (info_path == NULL) {
     status = RRM_SNOMEM;
     goto err_info_path;
@@ -231,6 +216,31 @@ err_open_lock:
   free(lock_path);
 err_lock_path:
   return status;
+}
+
+const char *rrm_trash_get_path(rrm_trash *trash)
+{
+  return trash->path;
+}
+
+rrm_status rrm_trash_insert(rrm_trash *trash, int *dump_id)
+{
+  struct rrm_trash_info info;
+  int last_dump;
+  rrm_dump dump;
+
+  lockf(trash->lock_fd, F_LOCK, 0);
+  rrm_trash_read_info(trash->info_fd, &info);
+  last_dump = info.last_dump;
+  info.last_dump = *dump_id = info.dump_count++;
+  rrm_trash_write_info(trash->info_fd, &info);
+  lockf(trash->lock_fd, F_ULOCK, 0);
+
+  // TODO open previous to update.
+  rrm_dump_open(&dump, trash, *dump_id, true);
+  rrm_dump_configure(&dump, 0, last_dump, true);
+
+  return RRM_SOK;
 }
 
 void rrm_trash_close(rrm_trash *trash)

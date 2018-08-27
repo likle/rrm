@@ -18,6 +18,15 @@ typedef struct rrm_trash
 } rrm_trash;
 
 /**
+ * An iterator which can be used to iterate over all dumps.
+ */
+typedef struct rrm_trash_iterator
+{
+  rrm_trash *trash;
+  int dump_id;
+} rrm_trash_iterator;
+
+/**
  * @brief Creates a new trash at the specified location.
  *
  * This function creates a new trash at the specified location. A call to this
@@ -44,6 +53,29 @@ rrm_status rrm_trash_create(const char *path);
  */
 rrm_status rrm_trash_open(rrm_trash *trash, const char *path,
   bool create_if_missing);
+
+/**
+ * @brief Gets the path of the trash.
+ *
+ * This function gets the path which is associated with the trash. This path was
+ * submitted when the trash was opened.
+ *
+ * @param trash The trash which will be inspected.
+ * @return The path of the trash.
+ */
+const char *rrm_trash_get_path(rrm_trash *trash);
+
+rrm_status rrm_trash_insert(rrm_trash *trash, int *dump_id);
+
+rrm_status rrm_trash_begin(rrm_trash *trash, rrm_trash_iterator *it);
+
+rrm_status rrm_trash_next(rrm_trash_iterator *it);
+
+rrm_status rrm_trash_previous(rrm_trash_iterator *it);
+
+rrm_status rrm_trash_delete(rrm_trash_iterator *it);
+
+rrm_status rrm_trash_close_iterator(rrm_trash_iterator *it);
 
 /**
  * @brief Closes a trash.

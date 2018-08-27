@@ -13,6 +13,7 @@
   XX(NOSPC, true, "Insufficient space")                                        \
   XX(NTLNG, true, "Name too long")                                             \
   XX(OK, false, "Everything is ok")                                            \
+  XX(AEXST, true, "Already exists")                                           \
   XX(ROFS, true, "Read-only file system")                                      \
   XX(UNKWN, true, "Unknown error")
 
