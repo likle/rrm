@@ -3,6 +3,35 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+int path_find_common_limited()
+{
+  const char *a, *b;
+  size_t result;
+
+  a = "abc/hello/there";
+  b = "abc";
+  result = rrm_path_find_common(a, b, 2);
+  if (result != 0) {
+    return EXIT_FAILURE;
+  }
+
+  a = "abc/hello/there";
+  b = "abc";
+  result = rrm_path_find_common(a, b, 3);
+  if (result != 3) {
+    return EXIT_FAILURE;
+  }
+
+  a = "abc/hello/there";
+  b = "abc";
+  result = rrm_path_find_common(a, b, 4);
+  if (result != 3) {
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
 int path_find_common_similar()
 {
   const char *a, *b;
