@@ -17,9 +17,6 @@ Usage: rrm [OPTION]... [FILE]...
    or: rrm [OPTION]... -u [DUMP]...
 Moves files to the trash, recovers or lists dumps.
 
-  -f, --force          ignore non-existent files and arguments, never prompt
-  -r, -R, --recursive  remove directories and their contents recursively
-  -d                   remove empty directories
   -u, --undo           recovers previously deleted dumps
   --output=DIR         specifies an output directory for recovery
   -l, --list           lists previously deleted dumps

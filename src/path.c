@@ -49,3 +49,40 @@ char *rrm_path_join(const char *a, const char *b)
   // caller though.
   return path;
 }
+
+size_t rrm_path_find_common(const char *a, const char *b, size_t n)
+{
+  size_t i, last;
+
+  last = 0;
+  for (i = 0;; ++i) {
+    if (a[i] == '\0' || b[i] == '\0') {
+      // So one of those strings reached the end. Now it might be that the other
+      // string contains a dash, which would mean it is part of the common sub
+      // path.
+      if (a[i] == '/' || b[i] == '/') {
+        last = i;
+      }
+
+      // In any case, since one string reached the end we have to leave at this
+      // point.
+      break;
+    } else if (a[i] == '/' && b[i] == '/') {
+      // If both strings point to a slash, this is part of the common sub path.
+      last = i;
+    }
+
+    // We are done if the two strings differ, since from that point their path
+    // obviously is no longer the same.
+    if (a[i] != b[i]) {
+      break;
+    }
+
+    // We need to stop scanning if we reached the limit.
+    if (i >= n) {
+      break;
+    }
+  }
+
+  return last;
+}
