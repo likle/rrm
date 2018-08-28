@@ -8,6 +8,12 @@ char *rrm_path_join(const char *a, const char *b)
   size_t a_length, b_length;
   char *path;
 
+  // First we remove the slashes from the second segment, since we don't want to
+  // have any there.
+  while (*b == '/') {
+    ++b;
+  }
+
   // First we determine the length of the two pieces which we will combine.
   // That's as simple as calling strlen.
   a_length = strlen(a);

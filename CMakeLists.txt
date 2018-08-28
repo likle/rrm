@@ -35,6 +35,8 @@ endif()
 add_executable(${TRASH_TARGET}
   "${SOURCE_DIRECTORY}/dump.c"
   "${SOURCE_DIRECTORY}/dump.h"
+  "${SOURCE_DIRECTORY}/exec.c"
+  "${SOURCE_DIRECTORY}/exec.h"
   "${SOURCE_DIRECTORY}/main.c"
   "${SOURCE_DIRECTORY}/option.c"
   "${SOURCE_DIRECTORY}/option.h"
@@ -64,6 +66,9 @@ create_test(DEFAULT option long_missing_value)
 create_test(DEFAULT option ending)
 create_test(DEFAULT option mixed)
 create_test(DEFAULT option complex)
+create_test(DEFAULT path simple)
+create_test(DEFAULT path slash_prefix)
+create_test(DEFAULT path slash_suffix)
 create_test(DEFAULT trash open_and_create)
 create_test(DEFAULT trash create_open)
 create_test(DEFAULT trash insert)
@@ -79,6 +84,7 @@ add_executable(${TEST_TARGET}
   "${SOURCE_DIRECTORY}/path.c"
   "${SOURCE_DIRECTORY}/dump.c"
   "${TEST_DIRECTORY}/option_test.c"
+  "${TEST_DIRECTORY}/path_test.c"
   "${TEST_DIRECTORY}/trash_test.c")
 target_include_directories(${TEST_TARGET} PRIVATE "${SOURCE_DIRECTORY}")
 

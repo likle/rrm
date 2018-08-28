@@ -10,9 +10,11 @@ static void clear_dumps()
   char path[255];
 
   for (i = 0; i < 100; ++i) {
-    sprintf(path, "my_trash/%i/INFO", i);
+    sprintf(path, "my_trash/%i/" RRM_FILES_FOLDER_NAME, i);
     remove(path);
-    sprintf(path, "my_trash/%i/LOCK", i);
+    sprintf(path, "my_trash/%i/" RRM_INFO_FILE_NAME, i);
+    remove(path);
+    sprintf(path, "my_trash/%i/" RRM_LOCK_FILE_NAME, i);
     remove(path);
     sprintf(path, "my_trash/%i", i);
     remove(path);
@@ -114,17 +116,17 @@ int trash_insert()
   rrm_dump_close(&dump);
 
   status = rrm_trash_begin(&trash, &dump);
-  if(status != RRM_SOK) {
+  if (status != RRM_SOK) {
     goto err_begin;
   }
 
   status = rrm_dump_next(&dump);
-  if(status != RRM_SOK) {
+  if (status != RRM_SOK) {
     goto err_next;
   }
 
   status = rrm_dump_next(&dump);
-  if(status != RRM_SEND) {
+  if (status != RRM_SEND) {
     goto err_next;
   }
 

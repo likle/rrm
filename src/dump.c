@@ -33,7 +33,7 @@ static rrm_status rrm_dump_create_internal(const char *path,
   bool fail_if_exists, int *lock_fd, int *info_fd)
 {
   rrm_status status;
-  char *lock_path, *info_path;
+  char *lock_path, *info_path, *files_path;
   struct rrm_dump_info info;
 
   if (mkdir(path, S_IRWXU) < 0) {
@@ -49,6 +49,9 @@ static rrm_status rrm_dump_create_internal(const char *path,
   *lock_fd = open(lock_path, O_RDWR | O_CREAT, 0666);
 
   lockf(*lock_fd, F_LOCK, 0);
+
+  files_path = rrm_path_join(path, RRM_FILES_FOLDER_NAME);
+  mkdir(files_path, 0666);
 
   *info_fd = open(info_path, O_RDWR | O_CREAT, 0666);
   info.prev_dump_id = 0;
@@ -90,6 +93,7 @@ rrm_status rrm_dump_open(rrm_dump *dump, struct rrm_trash *trash, int dump_id,
 
   dump->trash = trash;
   dump->path = rrm_dump_create_path(trash, dump_id);
+  dump->files_path = rrm_path_join(dump->path, RRM_FILES_FOLDER_NAME);
   dump->dump_id = dump_id;
   if (create_if_missing) {
     return rrm_dump_create_internal(dump->path, false, &dump->lock_fd,
@@ -109,20 +113,45 @@ rrm_status rrm_dump_open(rrm_dump *dump, struct rrm_trash *trash, int dump_id,
 
 rrm_status rrm_dump_move_after(rrm_dump *dump, rrm_dump *new_dump)
 {
+  rrm_status status;
   struct rrm_dump_info info, new_info;
 
-  pread(dump->info_fd, &info, sizeof(info), 0);
-  pread(new_dump->info_fd, &new_info, sizeof(new_info), 0);
+  if (pread(dump->info_fd, &info, sizeof(info), 0) != sizeof(info)) {
+    status = rrm_status_from_os(errno);
+    goto err_read_info;
+  }
+
+  if (pread(new_dump->info_fd, &new_info, sizeof(new_info), 0) !=
+      sizeof(new_info)) {
+    status = rrm_status_from_os(errno);
+    goto err_read_new_info;
+  }
 
   assert(new_info.prev_dump_id == 0);
+  assert(new_info.next_dump_id == 0);
 
   info.next_dump_id = new_dump->dump_id;
   new_info.prev_dump_id = dump->dump_id;
 
-  pwrite(dump->info_fd, &info, sizeof(info), 0);
-  pwrite(new_dump->info_fd, &new_info, sizeof(new_info), 0);
+  if (pwrite(dump->info_fd, &info, sizeof(info), 0) != sizeof(info)) {
+    status = rrm_status_from_os(errno);
+    goto err_write_info;
+  }
+
+  if (pwrite(new_dump->info_fd, &new_info, sizeof(new_info), 0) !=
+      sizeof(new_info)) {
+    status = rrm_status_from_os(errno);
+    goto err_write_new_info;
+  }
 
   return RRM_SOK;
+
+err_write_new_info:
+  // TODO undo write info?
+err_write_info:
+err_read_new_info:
+err_read_info:
+  return status;
 }
 
 rrm_status rrm_dump_next(rrm_dump *dump)
@@ -180,7 +209,12 @@ rrm_status rrm_dump_previous(rrm_dump *dump)
   return RRM_SOK;
 }
 
-time_t rrm_dump_get_time(rrm_dump *dump)
+int rrm_dump_get_id(const rrm_dump *dump)
+{
+  return dump->dump_id;
+}
+
+time_t rrm_dump_get_time(const rrm_dump *dump)
 {
   struct rrm_dump_info info;
 
@@ -189,6 +223,18 @@ time_t rrm_dump_get_time(rrm_dump *dump)
   }
 
   return info.time;
+}
+
+rrm_status rrm_dump_add_file(rrm_dump *dump, const char *file)
+{
+  char *new_path;
+
+  new_path = rrm_path_join(dump->files_path, file);
+  if (rename(file, new_path) == 0) {
+    return RRM_SOK;
+  }
+
+  return rrm_status_from_os(errno);
 }
 
 void rrm_dump_close(rrm_dump *dump)

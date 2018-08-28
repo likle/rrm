@@ -21,6 +21,7 @@ typedef struct rrm_dump
 {
   struct rrm_trash *trash;
   char *path;
+  const char *files_path;
   int dump_id;
   int lock_fd;
   int info_fd;
@@ -90,6 +91,17 @@ rrm_status rrm_dump_next(rrm_dump *dump);
 rrm_status rrm_dump_previous(rrm_dump *dump);
 
 /**
+ * @brief Gets the dump identifier.
+ *
+ * This function extracts the unique dump identifier from the dump, which can be
+ * used to open and inspect a dump.
+ *
+ * @param dump The dump which will be inspected.
+ * @return Returns the dump identifier.
+ */
+int rrm_dump_get_id(const rrm_dump *dump);
+
+/**
  * @brief Gets the time when a dump was created.
  *
  * This function extracts the time of a dump, which determines when this
@@ -99,7 +111,19 @@ rrm_status rrm_dump_previous(rrm_dump *dump);
  * @return Returns a time_t value which corresponds to the time when the dump
  * was created.
  */
-time_t rrm_dump_get_time(rrm_dump *dump);
+time_t rrm_dump_get_time(const rrm_dump *dump);
+
+/**
+ * @brief Add file to the dump.
+ *
+ * This function moves a file to the dump. The new file will have the same path
+ * under the dump.
+ *
+ * @param dump The dump where the file will be moved to.
+ * @param file The file path of the file which will be moved to the dump.
+ * @return Returns RRM_SOK on success or an error otherwise.
+ */
+rrm_status rrm_dump_add_file(rrm_dump *dump, const char *file);
 
 /**
  * @brief Closes the dump.
