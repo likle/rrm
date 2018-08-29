@@ -74,10 +74,11 @@ const char *rrm_trash_get_path(rrm_trash *trash);
  * rrm_dump_close.
  *
  * @param trash The trash which will own the new dump.
+ * @param origin The origin path where the dump has it's root.
  * @param dump The output of the new dump.
  * @return Returns RRM_SOK on success or an error otherwise.
  */
-rrm_status rrm_trash_insert(rrm_trash *trash, rrm_dump *dump);
+rrm_status rrm_trash_insert(rrm_trash *trash, const char *origin, rrm_dump *dump);
 
 /**
  * @brief Opens the first dump of the trash.

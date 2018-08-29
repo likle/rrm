@@ -2,7 +2,7 @@
 [![codecov](https://codecov.io/gh/likle/rrm/branch/master/graph/badge.svg)](https://codecov.io/gh/likle/rrm)
 ![status](https://img.shields.io/badge/status-not_released-red.svg?longCache=true&style=flat)
 
-# rrm - trash utility
+# rrm - recoverable rm
 The ``rrm`` (**r**ecoverable **r**e**m**ove) utility is a simple tool which can be 
 used as a replacement for rm. While rm permanently deletes all files, ``rrm`` 
 will be able to recover those files.

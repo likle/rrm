@@ -4,6 +4,7 @@
 #include "trash.h"
 #include <assert.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,6 +18,8 @@ struct rrm_dump_info
   int prev_dump_id;
   bool active;
   time_t time;
+  size_t files;
+  char origin_path[PATH_MAX];
 };
 
 static char *rrm_dump_create_path(rrm_trash *trash, int dump_id)
@@ -30,7 +33,7 @@ static char *rrm_dump_create_path(rrm_trash *trash, int dump_id)
 }
 
 static rrm_status rrm_dump_create_internal(const char *path,
-  bool fail_if_exists, int *lock_fd, int *info_fd)
+  bool fail_if_exists, const char *origin, int *lock_fd, int *info_fd)
 {
   rrm_status status;
   char *lock_path, *info_path, *files_path;
@@ -58,6 +61,8 @@ static rrm_status rrm_dump_create_internal(const char *path,
   info.next_dump_id = 0;
   info.active = true;
   info.time = time(NULL);
+  info.files = 0;
+  strcpy(info.origin_path, origin);
 
   pwrite(*info_fd, &info, sizeof(info), 0);
 
@@ -67,14 +72,16 @@ static rrm_status rrm_dump_create_internal(const char *path,
   return RRM_SOK;
 }
 
-rrm_status rrm_dump_create(struct rrm_trash *trash, int dump_id)
+rrm_status rrm_dump_create(struct rrm_trash *trash, int dump_id,
+  const char *origin)
 {
   rrm_status status;
   char *dump_path;
   int lock_fd, info_fd;
 
   dump_path = rrm_dump_create_path(trash, dump_id);
-  status = rrm_dump_create_internal(dump_path, true, &lock_fd, &info_fd);
+  status = rrm_dump_create_internal(dump_path, true, origin, &lock_fd,
+    &info_fd);
   if (rrm_status_is_error(status)) {
     return status;
   }
@@ -87,7 +94,7 @@ rrm_status rrm_dump_create(struct rrm_trash *trash, int dump_id)
 }
 
 rrm_status rrm_dump_open(rrm_dump *dump, struct rrm_trash *trash, int dump_id,
-  bool create_if_missing)
+  bool create_if_missing, const char *origin)
 {
   char *lock_path, *info_path;
 
@@ -95,8 +102,9 @@ rrm_status rrm_dump_open(rrm_dump *dump, struct rrm_trash *trash, int dump_id,
   dump->path = rrm_dump_create_path(trash, dump_id);
   dump->files_path = rrm_path_join(dump->path, RRM_FILES_FOLDER_NAME);
   dump->dump_id = dump_id;
+
   if (create_if_missing) {
-    return rrm_dump_create_internal(dump->path, false, &dump->lock_fd,
+    return rrm_dump_create_internal(dump->path, false, origin, &dump->lock_fd,
       &dump->info_fd);
   }
 
@@ -168,7 +176,7 @@ rrm_status rrm_dump_next(rrm_dump *dump)
     return RRM_SEND;
   }
 
-  status = rrm_dump_open(&next, dump->trash, info.next_dump_id, false);
+  status = rrm_dump_open(&next, dump->trash, info.next_dump_id, false, NULL);
   if (rrm_status_is_error(status)) {
     return status;
   }
@@ -196,7 +204,7 @@ rrm_status rrm_dump_previous(rrm_dump *dump)
 
   rrm_dump_close(dump);
 
-  status = rrm_dump_open(&prev, dump->trash, info.prev_dump_id, false);
+  status = rrm_dump_open(&prev, dump->trash, info.prev_dump_id, false, NULL);
   if (rrm_status_is_error(status)) {
     // TODO iterator invalid
     return status;
@@ -225,16 +233,103 @@ time_t rrm_dump_get_time(const rrm_dump *dump)
   return info.time;
 }
 
-rrm_status rrm_dump_add_file(rrm_dump *dump, const char *file)
+rrm_status rrm_dump_get_origin(const rrm_dump *dump, char *output)
 {
+  struct rrm_dump_info info;
+
+  if (pread(dump->info_fd, &info, sizeof(info), 0) != sizeof(info)) {
+    return rrm_status_from_os(errno);
+  }
+
+  strcpy(output, info.origin_path);
+  return RRM_SOK;
+}
+
+static rrm_status rrm_dump_create_file_info(rrm_dump *dump,
+  struct rrm_dump_info *info, const char *file)
+{
+  rrm_status status;
+  int file_info_fd;
+  char name_buf[50];
+  char result[PATH_MAX];
+  char *file_info_path;
+  size_t file_name_size;
+
+  snprintf(name_buf, sizeof(name_buf), "%zu.info", info->files);
+  rrm_path_resolve(info->origin_path, name_buf, sizeof(result), result);
+
+  file_info_path = rrm_path_join(dump->files_path, name_buf); // TODO check NULL
+
+  file_info_fd = open(file_info_path, O_WRONLY | O_CREAT, 0666);
+  if (file_info_fd < 0) {
+    status = rrm_status_from_os(errno);
+    goto err_open;
+  }
+
+  file_name_size = strlen(file) + 1;
+  if (pwrite(file_info_fd, file, file_name_size, 0) !=
+      (ssize_t)file_name_size) {
+    status = rrm_status_from_os(errno);
+    goto err_write;
+  }
+
+  close(file_info_fd);
+  free(file_info_path);
+
+  return RRM_SOK;
+err_write:
+  close(file_info_fd);
+err_open:
+  free(file_info_path);
+  return status;
+}
+
+static rrm_status rrm_dump_move_file(rrm_dump *dump, struct rrm_dump_info *info,
+  const char *file)
+{
+  char name_buf[50];
+  char result[PATH_MAX];
   char *new_path;
 
-  new_path = rrm_path_join(dump->files_path, file);
+  snprintf(name_buf, sizeof(name_buf), "%zu.data", info->files);
+  rrm_path_resolve(info->origin_path, name_buf, sizeof(result), result);
+
+  new_path = rrm_path_join(dump->files_path, name_buf);
   if (rename(file, new_path) == 0) {
     return RRM_SOK;
   }
 
+  free(new_path);
   return rrm_status_from_os(errno);
+}
+
+rrm_status rrm_dump_add_file(rrm_dump *dump, const char *file)
+{
+  rrm_status status;
+  struct rrm_dump_info info;
+
+  if (pread(dump->info_fd, &info, sizeof(info), 0) != sizeof(info)) {
+    return rrm_status_from_os(errno);
+  }
+
+  ++info.files;
+
+  status = rrm_dump_create_file_info(dump, &info, file);
+  if (rrm_status_is_error(status)) {
+    goto err_create_file_info;
+  }
+
+  status = rrm_dump_move_file(dump, &info, file);
+  if (rrm_status_is_error(status)) {
+    goto err_move_file;
+  }
+
+  return rrm_status_from_os(errno);
+
+err_move_file:
+  // TODO remove moved file
+err_create_file_info:
+  return status;
 }
 
 void rrm_dump_close(rrm_dump *dump)

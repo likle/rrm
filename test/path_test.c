@@ -1,7 +1,76 @@
+#include <limits.h>
 #include <memory.h>
 #include <path.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+int path_resolve_navigate_back()
+{
+  const char *absolute, *relative, *expected;
+  char result[PATH_MAX];
+
+  absolute = "/hello/this/is/absolute";
+  relative = "../../must/work";
+  expected = "/hello/this/must/work";
+  rrm_path_resolve(absolute, relative, sizeof(result), result);
+
+  if (strcmp(expected, result) != 0) {
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int path_resolve_absolute()
+{
+  const char *absolute, *relative, *expected;
+  char result[PATH_MAX];
+
+  absolute = "/hello/this/is/absolute";
+  relative = "/another/absolute/path";
+  expected = relative;
+  rrm_path_resolve(absolute, relative, sizeof(result), result);
+
+  if (strcmp(expected, result) != 0) {
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int path_resolve_current()
+{
+  const char *absolute, *relative, *expected;
+  char result[PATH_MAX];
+
+  absolute = "/hello/this/is/absolute";
+  relative = "./fun";
+  expected = "/hello/this/is/absolute/fun";
+  rrm_path_resolve(absolute, relative, sizeof(result), result);
+
+  if (strcmp(expected, result) != 0) {
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int path_resolve_simple()
+{
+  const char *absolute, *relative, *expected;
+  char result[PATH_MAX];
+
+  absolute = "/hello/this/is/absolute";
+  relative = "fun";
+  expected = "/hello/this/is/absolute/fun";
+  rrm_path_resolve(absolute, relative, sizeof(result), result);
+
+  if (strcmp(expected, result) != 0) {
+    return EXIT_FAILURE;
+  }
+
+  return EXIT_SUCCESS;
+}
 
 int path_find_common_limited()
 {

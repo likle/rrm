@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <memory.h>
+#include <limits.h>
 
 enum rrm_exec_task
 {
@@ -102,7 +103,7 @@ static rrm_status rrm_exec_remove(struct rrm_exec_context *exec,
   rrm_dump dump;
   char **file;
 
-  rrm_trash_insert(trash, &dump);
+  rrm_trash_insert(trash, NULL, &dump);
   while (*(file = exec->files++)) {
     rrm_dump_add_file(&dump, *file);
   }
@@ -118,16 +119,18 @@ static rrm_status rrm_exec_list(rrm_trash *trash, FILE *out)
   time_t timestamp;
   struct tm *time;
   char time_buf[70];
+  char origin[PATH_MAX];
 
   status = rrm_trash_begin(trash, &dump);
   while (status == RRM_SOK) {
     timestamp = rrm_dump_get_time(&dump);
+    rrm_dump_get_origin(&dump, origin);
     time = localtime(&timestamp);
     if(!strftime(time_buf, sizeof(time_buf), "%Y/%m/%d %H:%M:%S", time)) {
       strcpy(time_buf, "unknown_time");
     }
 
-    fprintf(out, "[%03i] %s\n", rrm_dump_get_id(&dump), time_buf);
+    fprintf(out, "[%03i] %s %s\n", rrm_dump_get_id(&dump), time_buf, origin);
     status = rrm_dump_next(&dump);
     if (rrm_status_is_error(status)) {
       goto err_next;

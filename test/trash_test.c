@@ -101,14 +101,14 @@ int trash_insert()
     goto err_open;
   }
 
-  status = rrm_trash_insert(&trash, &dump);
+  status = rrm_trash_insert(&trash, NULL, &dump);
   if (rrm_status_is_error(status)) {
     goto err_insert;
   }
 
   rrm_dump_close(&dump);
 
-  status = rrm_trash_insert(&trash, &dump);
+  status = rrm_trash_insert(&trash, NULL, &dump);
   if (rrm_status_is_error(status)) {
     goto err_insert;
   }

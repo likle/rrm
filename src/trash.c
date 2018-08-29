@@ -5,6 +5,7 @@
 #include "status.h"
 #include <assert.h>
 #include <errno.h>
+#include <limits.h>
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -216,11 +217,11 @@ const char *rrm_trash_get_path(rrm_trash *trash)
 }
 
 static rrm_status rrm_trash_insert_at_end(rrm_trash *trash, int last_dump_id,
-  int dump_id, rrm_dump *dump)
+  int dump_id, const char *origin, rrm_dump *dump)
 {
   rrm_dump last_dump;
-  rrm_dump_open(&last_dump, trash, last_dump_id, false);
-  rrm_dump_open(dump, trash, dump_id, true);
+  rrm_dump_open(&last_dump, trash, last_dump_id, false, NULL);
+  rrm_dump_open(dump, trash, dump_id, true, origin);
   rrm_dump_move_after(&last_dump, dump);
   rrm_dump_close(&last_dump);
 
@@ -245,10 +246,17 @@ static rrm_status rrm_trash_allocate_dump_id(rrm_trash *trash, int *dump_id,
   return RRM_SOK;
 }
 
-rrm_status rrm_trash_insert(rrm_trash *trash, rrm_dump *dump)
+rrm_status rrm_trash_insert(rrm_trash *trash, const char *origin,
+  rrm_dump *dump)
 {
   rrm_status status;
   int dump_id, last_dump_id;
+  char origin_fallback[PATH_MAX];
+
+  if (origin == NULL) {
+    getcwd(origin_fallback, sizeof(origin_fallback));
+    origin = origin_fallback;
+  }
 
   status = rrm_trash_allocate_dump_id(trash, &dump_id, &last_dump_id);
   if (rrm_status_is_error(status)) {
@@ -256,7 +264,8 @@ rrm_status rrm_trash_insert(rrm_trash *trash, rrm_dump *dump)
   }
 
   if (last_dump_id != 0) {
-    status = rrm_trash_insert_at_end(trash, last_dump_id, dump_id, dump);
+    status = rrm_trash_insert_at_end(trash, last_dump_id, dump_id, origin,
+      dump);
     if (rrm_status_is_error(status)) {
       goto err_insert_at_end;
     }
@@ -264,7 +273,7 @@ rrm_status rrm_trash_insert(rrm_trash *trash, rrm_dump *dump)
     return RRM_SOK;
   }
 
-  return rrm_dump_open(dump, trash, dump_id, true);
+  return rrm_dump_open(dump, trash, dump_id, true, origin);
 
 err_insert_at_end:
   // TODO undo dump id allocation
@@ -277,8 +286,12 @@ rrm_status rrm_trash_begin(rrm_trash *trash, rrm_dump *dump)
   struct rrm_trash_info info;
   lockf(trash->lock_fd, F_LOCK, 0);
   pread(trash->info_fd, &info, sizeof(info), 0);
-  rrm_dump_open(dump, trash, info.first_dump, false);
+  rrm_dump_open(dump, trash, info.first_dump, false, NULL);
   lockf(trash->lock_fd, F_ULOCK, 0);
+
+  if (info.dump_count == 0) {
+    return RRM_SEND;
+  }
 
   return RRM_SOK;
 }
@@ -288,7 +301,7 @@ rrm_status rrm_trash_end(rrm_trash *trash, rrm_dump *dump)
   struct rrm_trash_info info;
   lockf(trash->lock_fd, F_LOCK, 0);
   pread(trash->info_fd, &info, sizeof(info), 0);
-  rrm_dump_open(dump, trash, info.last_dump, false);
+  rrm_dump_open(dump, trash, info.last_dump, false, NULL);
   lockf(trash->lock_fd, F_ULOCK, 0);
 
   return RRM_SOK;

@@ -35,9 +35,11 @@ typedef struct rrm_dump
  *
  * @param trash The trash which owns this dump.
  * @param dump_id The unique identifier of this dump.
+ * @param origin The origin path of the dump.
  * @return Returns RRM_SOK on success or an error otherwise.
  */
-rrm_status rrm_dump_create(struct rrm_trash *trash, int dump_id);
+rrm_status rrm_dump_create(struct rrm_trash *trash, int dump_id,
+  const char *origin);
 
 /**
  * @brief Opens a dump.
@@ -45,17 +47,20 @@ rrm_status rrm_dump_create(struct rrm_trash *trash, int dump_id);
  * This function opens a dump contained in a specific trash. It will create a
  * new dump if create_if_missing is set to true and the dump doesn't exist - or
  * return an error if it exists and it is set to false. The opened dump needs to
- * be closed using rrm_dump_close if it is no longer needed.
+ * be closed using rrm_dump_close if it is no longer needed. If the dump is
+ * created newly, the origin is set to the current working directory.
  *
  * @param dump The dump which will be initialized.
  * @param trash The trash which owns this dump.
  * @param dump_id The unique dump identifier of the dump to be opened.
  * @param create_if_missing Indicates whether a dump will be created if it is
  * not found.
+ * @param origin The origin used to create the new dump. Ignored if the dump
+ * already exists.
  * @return Returns RRM_SOK on success or an error otherwise.
  */
 rrm_status rrm_dump_open(rrm_dump *dump, struct rrm_trash *trash, int dump_id,
-  bool create_if_missing);
+  bool create_if_missing, const char *origin);
 
 /**
  * @brief Moves a dump after the specified dump.
@@ -114,10 +119,22 @@ int rrm_dump_get_id(const rrm_dump *dump);
 time_t rrm_dump_get_time(const rrm_dump *dump);
 
 /**
+ * @brief Gets the origin of the dump.
+ *
+ * This function gets the origin directory of the dump and writes it to the
+ * output buffer.
+ *
+ * @param dump The dump which will be inspected.
+ * @param output The output where the origin will be written to.
+ * @return Returns RRM_SOK on success or an error otherwise.
+ */
+rrm_status rrm_dump_get_origin(const rrm_dump *dump, char *output);
+
+/**
  * @brief Add file to the dump.
  *
  * This function moves a file to the dump. The new file will have the same path
- * under the dump.
+ * under the dump. The moved files must be relative to the origin of the dump.
  *
  * @param dump The dump where the file will be moved to.
  * @param file The file path of the file which will be moved to the dump.
